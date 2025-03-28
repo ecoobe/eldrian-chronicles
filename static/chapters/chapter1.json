@@ -1,35 +1,24 @@
 {
     "id": "chapter1",
-    "background": "forest.jpg",
-    "characters": [
-        {
-            "name": "Лира",
-            "sprite": "lira_neutral.png",
-            "position": "left"
-        }
-    ],
-    "text": "Вы стоите на опушке Леса Забвения. Ветер шепчет: 'Беги...'",
+    "background": "forest.webp",
+    "text": "Вы стоите на опушке древнего леса. Ветер шепчет: <i>'Беги, пока не поздно...'</i>",
     "choices": [
         {
-            "text": "Осмотреть руины храма (Требуется: Магия ≥1)",
-            "requires": {"magic": 1},
+            "text": "Осмотреть руины храма (Нужно: Магия ≥1)",
             "next": "chapter2",
+            "requires": {"magic": 1},
             "effects": {"lira_trust": 2}
         },
         {
-            "text": "Искать артефакт в кустах",
-            "next": "chapter3",
-            "effects": {"artifact": true},
-            "hidden": true,
-            "condition": "!player_used_shadow"
+            "text": "Пройти мимо",
+            "next": "bad_ending1",
+            "effects": {"health": -10}
         },
         {
-            "text": "Игнорировать предупреждение и идти вперёд",
-            "next": "bad_ending1",
-            "effects": {"health": -30}
+            "text": "Использовать дар Теней",
+            "next": "hidden_path",
+            "hidden": true,
+            "condition": "hasShadowVial"
         }
-    ],
-    "onEnter": {
-        "checkShadow": "if (player.shadowVial) showHiddenChoice(2)"
-    }
+    ]
 }

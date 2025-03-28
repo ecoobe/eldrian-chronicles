@@ -1,30 +1,66 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
 #game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
-    position: relative;
-    overflow: hidden;
-    background: url('/backgrounds/forest.webp') no-repeat center/cover;
+    background: url('/backgrounds/forest.webp') no-repeat center center/cover;
 }
 
 .stats-box {
     position: absolute;
     top: 20px;
     left: 20px;
-    padding: 10px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border-radius: 5px;
+    padding: 15px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    border-radius: 8px;
+    font-family: 'Arial', sans-serif;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 .text-box {
     position: absolute;
-    bottom: 20%;
+    bottom: 15%;
     left: 50%;
     transform: translateX(-50%);
     width: 80%;
+    max-width: 600px;
     padding: 20px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border-radius: 10px;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    border-radius: 12px;
     text-align: center;
+    font-size: 1.2em;
+    line-height: 1.5;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+}
+
+.choice-btn {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 12px;
+    background: rgba(50,50,50,0.9);
+    color: white;
+    border: 2px solid #666;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.choice-btn:hover {
+    background: rgba(70,70,70,0.9);
+    transform: scale(1.02);
+}
+
+.choice-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
