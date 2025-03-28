@@ -1,24 +1,36 @@
 {
     "id": "chapter1",
-    "background": "forest.webp",
-    "text": "Вы стоите на опушке древнего леса. Ветер шепчет: <i>'Беги, пока не поздно...'</i>",
+    "background": "village_burning.webp",
+    "text": "Перед вами пылающая деревня Ветролом. Воздух наполнен криками и запахом гари. Вы видите:<br><br>1. Ребёнка в горящем доме<br>2. Подвал с таинственным свечением",
     "choices": [
         {
-            "text": "Осмотреть руины храма (Нужно: Магия ≥1)",
-            "next": "chapter2",
-            "requires": {"magic": 1},
-            "effects": {"lira_trust": 2}
+            "text": "Спасти ребёнка",
+            "next": "chapter1_rescue",
+            "requires": {"health": 20},
+            "effects": {
+                "health": -80,
+                "moral": 20,
+                "inventory": ["child_medallion"]
+            }
         },
         {
-            "text": "Пройти мимо",
-            "next": "bad_ending1",
-            "effects": {"health": -10}
+            "text": "Спрятаться в подвале",
+            "next": "chapter1_basement",
+            "effects": {
+                "inventory": ["rune_of_silence"],
+                "moral": -10
+            }
         },
         {
-            "text": "Использовать дар Теней",
-            "next": "hidden_path",
+            "text": "Использовать Тень Прошлого",
+            "next": "chapter1_shadow",
             "hidden": true,
-            "condition": "hasShadowVial"
+            "condition": "inventory.includes('shadow_vial')",
+            "effects": {
+                "magic": 2,
+                "health": -30,
+                "moral": -15
+            }
         }
     ]
 }

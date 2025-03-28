@@ -1,16 +1,17 @@
 html, body {
     margin: 0;
     padding: 0;
+    height: 100%;
     overflow: hidden;
+    font-family: 'Arial', sans-serif;
 }
 
 #game-container {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100vw;
     height: 100vh;
-    background: url('/backgrounds/forest.webp') no-repeat center center/cover;
+    background-size: cover;
+    background-position: center;
 }
 
 .stats-box {
@@ -18,49 +19,69 @@ html, body {
     top: 20px;
     left: 20px;
     padding: 15px;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.8);
     color: #fff;
     border-radius: 8px;
-    font-family: 'Arial', sans-serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 2;
+    min-width: 200px;
+}
+
+.stats-box span {
+    display: block;
+    margin: 5px 0;
 }
 
 .text-box {
     position: absolute;
-    bottom: 15%;
+    bottom: 180px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 800px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.1em;
+    line-height: 1.6;
+    backdrop-filter: blur(3px);
+}
+
+.choices-box {
+    position: absolute;
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     width: 80%;
     max-width: 600px;
-    padding: 20px;
-    background: rgba(0,0,0,0.85);
-    color: #fff;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 1.2em;
-    line-height: 1.5;
-    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .choice-btn {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-    padding: 12px;
-    background: rgba(50,50,50,0.9);
-    color: white;
-    border: 2px solid #666;
+    padding: 14px 25px;
+    background: rgba(40, 40, 40, 0.9);
+    color: #fff;
+    border: 1px solid #555;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
+    font-size: 1em;
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .choice-btn:hover {
-    background: rgba(70,70,70,0.9);
-    transform: scale(1.02);
+    background: rgba(60, 60, 60, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
 .choice-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
+    background: rgba(30, 30, 30, 0.9);
 }

@@ -1,0 +1,32 @@
+{
+    "id": "chapter1_rescue",
+    "background": "burning_house.webp",
+    "text": "Вы врываетесь в горящий дом и находите девочку. Она без сознания, но крепко сжимает странный медальон с символом солнца...",
+    "choices": [
+        {
+            "text": "Взять медальон",
+            "next": "chapter2",
+            "effects": {
+                "inventory": ["suspicious_medallion"],
+                "moral": -5
+            }
+        },
+        {
+            "text": "Оставить артефакт",
+            "next": "chapter2",
+            "effects": {
+                "lira_trust": 2,
+                "moral": 10
+            }
+        },
+        {
+            "text": "Исследовать медальон (Магия ≥2)",
+            "next": "chapter1_medallion_inspect",
+            "requires": {"magic": 2},
+            "effects": {
+                "magic": 1,
+                "health": -10
+            }
+        }
+    ]
+}
