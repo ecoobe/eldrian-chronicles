@@ -6,6 +6,16 @@
     background: url('/backgrounds/forest.webp') no-repeat center/cover;
 }
 
+.stats-box {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border-radius: 5px;
+}
+
 .text-box {
     position: absolute;
     bottom: 20%;
@@ -16,4 +26,5 @@
     background: rgba(0,0,0,0.7);
     color: white;
     border-radius: 10px;
+    text-align: center;
 }
