@@ -104,6 +104,8 @@ class Game {
             } else {
                 this.states[key] = (this.states[key] || 0) + value;
             }
+		document.getElementById('inventory').textContent = 
+        this.states.inventory.join(', ') || 'пусто';
         });
     }
 
@@ -117,6 +119,19 @@ class Game {
     init() {
         this.loadChapter(this.states.currentChapter);
     }
+
+	async loadChapter(chapterId) {
+		try {
+			const response = await fetch(`/chapters/${chapterId}.json`);
+			if (!response.ok) throw new Error(`Глава ${chapterId} не найдена`);
+			const chapter = await response.json();
+			this.renderChapter(chapter);
+		} catch (error) {
+			console.error('Ошибка:', error);
+			document.getElementById('text-display').innerHTML = 
+				`<p style="color: red">Ошибка загрузки главы: ${error.message}</p>`;
+		}
+	}
 }
 
 const game = new Game();

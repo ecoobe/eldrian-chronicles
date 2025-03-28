@@ -1,24 +1,17 @@
 {
     "id": "chapter2",
-    "background": "village_burning.webp",
-    "text": "В руинах вы находите древний артефакт. Лира смотрит на вас с подозрением.",
-    "characters": [
-        {
-            "name": "Лира",
-            "sprite": "lira_neutral.webp",
-            "position": "left"
-        }
-    ],
+    "background": "temple_ruins.webp",
+    "text": "Вы выходите из горящей деревни. Перед вами дорога, ведущая к древним руинам. Лира стоит у развилки, изучая карту.",
     "choices": [
         {
-            "text": "Взять артефакт",
-            "next": "chapter3",
-            "effects": {"magic": 3}
+            "text": "Подойти к Лире",
+            "next": "chapter2_lira",
+            "effects": {"lira_trust": 1}
         },
         {
-            "text": "Оставить артефакт",
-            "next": "chapter1",
-            "effects": {"lira_trust": 1}
+            "text": "Идти в обход",
+            "next": "chapter2_forest",
+            "requires": {"health": 30}
         }
     ]
 }
