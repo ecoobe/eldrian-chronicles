@@ -1,0 +1,11 @@
+#game-container {
+    background: url('../backgrounds/forest.jpg') no-repeat center;
+    background-size: cover;
+}
+
+.character-sprite {
+    position: absolute;
+    left: 15%;
+    bottom: 10%;
+    width: 300px;
+}

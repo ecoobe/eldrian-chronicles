@@ -1,17 +1,35 @@
 {
     "id": "chapter1",
-    "text": "Вы стоите перед горящей деревней. Ветер разносит крики...",
+    "background": "forest.jpg",
+    "characters": [
+        {
+            "name": "Лира",
+            "sprite": "lira_neutral.png",
+            "position": "left"
+        }
+    ],
+    "text": "Вы стоите на опушке Леса Забвения. Ветер шепчет: 'Беги...'",
     "choices": [
         {
-            "text": "Войти в дом",
+            "text": "Осмотреть руины храма (Требуется: Магия ≥1)",
             "requires": {"magic": 1},
             "next": "chapter2",
-            "effects": {"health": -20}
+            "effects": {"lira_trust": 2}
         },
         {
-            "text": "Искать руну",
+            "text": "Искать артефакт в кустах",
             "next": "chapter3",
-            "effects": {"artifact": true}
+            "effects": {"artifact": true},
+            "hidden": true,
+            "condition": "!player_used_shadow"
+        },
+        {
+            "text": "Игнорировать предупреждение и идти вперёд",
+            "next": "bad_ending1",
+            "effects": {"health": -30}
         }
-    ]
+    ],
+    "onEnter": {
+        "checkShadow": "if (player.shadowVial) showHiddenChoice(2)"
+    }
 }
