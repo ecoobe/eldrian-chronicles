@@ -1,0 +1,17 @@
+{
+    "id": "chapter1",
+    "text": "Вы стоите перед горящей деревней. Ветер разносит крики...",
+    "choices": [
+        {
+            "text": "Войти в дом",
+            "requires": {"magic": 1},
+            "next": "chapter2",
+            "effects": {"health": -20}
+        },
+        {
+            "text": "Искать руну",
+            "next": "chapter3",
+            "effects": {"artifact": true}
+        }
+    ]
+}
