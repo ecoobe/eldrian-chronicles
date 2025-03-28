@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:1.23-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./static:/usr/share/nginx/html
+      - ./config/nginx:/etc/nginx/conf.d
+      - /etc/letsencrypt:/etc/letsencrypt
+    networks:
+      - game_net
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - sre_network
+    privileged: true
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+    networks:
+      - game_net
+
+  grafana:
+    image: grafana/grafana-enterprise:latest
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    user: "472"
+    ports:
+      - "3001:3000"
+    networks:
+      - game_net
+    depends_on:
+      - victoriametrics
+      - alertmanager
+
+volumes:
+  grafana_data:  # Добавлен том для Grafana
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/grafana_data
+
+  victoriametrics_data:  # Добавлен том для VictoriaMetrics
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/victoriametrics-data
+
+networks:
+  game_net:
+    driver: bridge
