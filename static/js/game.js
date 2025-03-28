@@ -1,3 +1,9 @@
+document.getElementById('start-game-btn').addEventListener('click', () => {
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('game-container').classList.remove('hidden');
+    game.init();
+});
+
 class Game {
     constructor() {
         this.states = {

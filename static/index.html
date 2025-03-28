@@ -6,7 +6,14 @@
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-    <div id="game-container">
+    <!-- Стартовый экран -->
+    <div id="main-menu" class="main-menu">
+        <h1>Хроники Элдриана</h1>
+        <button id="start-game-btn" class="start-btn">Начать игру</button>
+    </div>
+
+    <!-- Игровой интерфейс (изначально скрыт) -->
+    <div id="game-container" class="hidden">
         <div id="stats" class="stats-box">
             <span>✨ Магия: <span id="magic-level">0</span></span>
             <span>🤝 Доверие Лиры: <span id="lira-trust">0</span></span>
@@ -14,6 +21,7 @@
         <div id="text-display" class="text-box"></div>
         <div id="choices" class="choices-box"></div>
     </div>
+
     <script src="/js/game.js"></script>
 </body>
 </html>
