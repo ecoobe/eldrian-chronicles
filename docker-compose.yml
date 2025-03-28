@@ -5,7 +5,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./static:/usr/share/nginx/html/static
+      - ./static:/usr/share/nginx/html
       - ./config/nginx:/etc/nginx/conf.d
       - /etc/letsencrypt:/etc/letsencrypt
     networks:
