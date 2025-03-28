@@ -3,7 +3,7 @@
     height: 100vh;
     position: relative;
     overflow: hidden;
-    /* background: url('/backgrounds/forest.webp') no-repeat center/cover; */
+    background: url('/backgrounds/forest.webp') no-repeat center/cover;
 }
 
 .stats-box {
