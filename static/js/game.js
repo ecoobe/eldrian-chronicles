@@ -22,11 +22,15 @@ class Game {
 
     async loadChapter(chapterId) {
         try {
+            console.log('Loading chapter:', chapterId); // Логирование загрузки
             const response = await fetch(`/chapters/${chapterId}.json`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const chapter = await response.json();
             this.renderChapter(chapter);
         } catch (error) {
             console.error('Error loading chapter:', error);
+            document.getElementById('text-display').innerHTML = 
+                `<p style="color:red">Ошибка загрузки главы: ${error.message}</p>`;
         }
     }
 
@@ -35,27 +39,21 @@ class Game {
         gameContainer.style.backgroundImage = `url('/backgrounds/${chapter.background}')`;
         
         document.getElementById('text-display').innerHTML = chapter.text;
-        
-        // Явное обновление статистики
-        this.updateStatsDisplay(); // <-- Добавлен вызов здесь
+        this.updateStatsDisplay();
         
         const choicesBox = document.getElementById('choices');
         choicesBox.innerHTML = '';
 
         chapter.choices.forEach(choice => {
-            // Исправленная проверка условий
             if (choice.hidden && !this.checkCondition(choice.condition)) return;
 
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.innerHTML = choice.text;
-            
-            // Исправленная проверка требований
             btn.disabled = !this.checkRequirements(choice.requires || {});
             
-            // Улучшенный обработчик
             btn.addEventListener('click', () => {
-                console.log('Choice selected:', choice.text); // Отладочный вывод
+                console.log('Choice selected:', choice.text);
                 this.applyEffects(choice.effects || {});
                 this.states.currentChapter = choice.next;
                 this.loadChapter(choice.next);
@@ -79,13 +77,13 @@ class Game {
 
     checkCondition(condition) {
         if (!condition) return true;
+        if (typeof condition !== 'string') return false;
         
         if (condition.startsWith('inventory.includes')) {
-            const item = condition.match(/'([^']+)'/)[1];
-            return this.states.inventory.includes(item);
+            const item = condition.match(/'([^']+)'/)?.[1];
+            return item ? this.states.inventory.includes(item) : false;
         }
-        
-        return this.states[condition] !== undefined;
+        return false;
     }
 
     applyEffects(effects) {
@@ -93,8 +91,8 @@ class Game {
             if (key === 'inventory') {
                 this.states.inventory.push(...[].concat(value));
             } else if (key === 'health') {
-                this.states.health = Math.max(0, this.states.health + value);
-            } else {
+                this.states.health = Math.max(0, Math.min(100, this.states.health + value));
+            } else if (this.states.hasOwnProperty(key)) {
                 this.states[key] += value;
             }
         });
@@ -102,15 +100,17 @@ class Game {
     }
 
     updateStatsDisplay() {
-        // Обновление всех элементов статистики
+        // Прогресс-бары
         document.getElementById('health-bar').style.width = `${this.states.health}%`;
         document.getElementById('magic-bar').style.width = `${this.states.magic}%`;
-        document.getElementById('inventory-count').textContent = 
-            `${this.states.inventory.length}/10`;
         
-        // Добавьте эти элементы в ваш HTML
+        // Текстовые значения
+        document.getElementById('health-value').textContent = this.states.health;
+        document.getElementById('magic-value').textContent = this.states.magic;
         document.getElementById('lira-trust').textContent = this.states.lira_trust;
         document.getElementById('moral-value').textContent = this.states.moral;
+        document.getElementById('inventory-count').textContent = 
+            `${this.states.inventory.length}/10`;
     }
 
     init() {

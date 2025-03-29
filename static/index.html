@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,34 +10,34 @@
 <body>
   <div id="main-menu" class="main-menu">
     <h1>Хроники Элдриана</h1>
-    <button id="start-btn" class="main-btn">Начать Путь</button>
+    <button id="start-game-btn" class="main-btn">Начать Путь</button>
     <button id="load-btn" class="main-btn" disabled>Продолжить</button>
   </div>
 
   <div id="game-container" class="hidden">
     <div class="stats-box">
-		<div class="stat-item">
-			<span>❤️ Здоровье: <span id="health-value">${this.states.health}</span>%</span>
-			<div class="progress-bar">
-				<div class="progress-fill" id="health-bar"></div>
-			</div>
-		</div>
-		<div class="stat-item">
-			<span>✨ Магия: <span id="magic-value">${this.states.magic}</span></span>
-			<div class="progress-bar">
-				<div class="progress-fill" id="magic-bar"></div>
-			</div>
-		</div>
-		<div class="stat-item">
-			<span>🤝 Доверие Лиры: <span id="lira-trust">0</span></span>
-		</div>
-		<div class="stat-item">
-			<span>🎒 Инвентарь: <span id="inventory-count">0/10</span></span>
-		</div>
-		<div class="stat-item">
-			<span>⚖️ Мораль: <span id="moral-value">50</span></span>
-		</div>
-	</div>
+        <div class="stat-item">
+            <span>❤️ Здоровье: <span id="health-value">100</span>%</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="health-bar" style="width: 100%"></div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span>✨ Магия: <span id="magic-value">0</span></span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="magic-bar" style="width: 0%"></div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span>🤝 Доверие Лиры: <span id="lira-trust">0</span></span>
+        </div>
+        <div class="stat-item">
+            <span>🎒 Инвентарь: <span id="inventory-count">0/10</span></span>
+        </div>
+        <div class="stat-item">
+            <span>⚖️ Мораль: <span id="moral-value">50</span></span>
+        </div>
+    </div>
 
     <div id="text-display" class="text-box"></div>
     <div id="choices" class="choices-box"></div>
