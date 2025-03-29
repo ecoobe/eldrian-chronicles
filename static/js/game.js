@@ -16,26 +16,20 @@ class Game {
         this.isLoading = false;
     }
 
-    async loadChapter(chapterId) {
-        if (this.isLoading || this.states.currentChapter === chapterId) {
-            console.log('Загрузка уже выполняется');
-            return;
-        }
+	async loadChapter(chapterId) {
+        if (this.isLoading) return;
         
         this.isLoading = true;
         try {
-            console.log(`[DEBUG] Loading chapter: ${chapterId}`);
-            const response = await fetch(`/chapters/${chapterId}.json?t=${Date.now()}`);
+            const response = await fetch(`/chapters/${chapterId}.json`);
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
             
             const chapter = await response.json();
-            this.states.currentChapter = chapterId;
             this.renderChapter(chapter);
             
         } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('text-display').innerHTML = 
-                `<p style="color:red">Ошибка: ${error.message}</p>`;
+            console.error('Error loading chapter:', error);
+            this.showError(error.message);
         } finally {
             this.isLoading = false;
         }
@@ -45,32 +39,18 @@ class Game {
         const textDisplay = document.getElementById('text-display');
         const choicesBox = document.getElementById('choices');
         
-        if (!textDisplay || !choicesBox) {
-            console.error('Критические элементы DOM не найдены');
-            return;
-        }
-
-        // Обновление фона
-        const gameContainer = document.getElementById('game-container');
-        gameContainer.style.backgroundImage = `url('/backgrounds/${chapter.background}')`;
-
-        // Обновление текста
-        textDisplay.innerHTML = chapter.text;
-
-        // Очистка кнопок
+        // Очистка предыдущего контента
+        textDisplay.innerHTML = chapter.text || "[Текст главы отсутствует]";
         choicesBox.innerHTML = '';
 
-        // Создание новых кнопок
-        chapter.choices.forEach(choice => {
-            if (choice.hidden && !this.checkCondition(choice.condition)) return;
-
+        // Добавление кнопок выбора
+        chapter.choices?.forEach(choice => {
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.textContent = choice.text;
-            btn.disabled = !this.checkRequirements(choice.requires || {});
-
+            
+            // Обработчик выбора
             btn.addEventListener('click', () => {
-                console.log('[DEBUG] Выбор:', choice.text);
                 this.applyEffects(choice.effects || {});
                 this.loadChapter(choice.next);
             });
@@ -78,6 +58,7 @@ class Game {
             choicesBox.appendChild(btn);
         });
 
+        // Принудительное обновление интерфейса
         this.updateStatsDisplay();
     }
 
@@ -147,6 +128,10 @@ class Game {
         elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
         elements.liraTrust.textContent = this.states.lira_trust;
         elements.moralValue.textContent = this.states.moral;
+    }
+	showError(message) {
+        const textDisplay = document.getElementById('text-display');
+        textDisplay.innerHTML = `<p class="error">ОШИБКА: ${message}</p>`;
     }
 
     init() {
