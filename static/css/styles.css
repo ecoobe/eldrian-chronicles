@@ -188,8 +188,3 @@ body {
     padding: 0.5rem 1rem;
     margin-top: 1rem;
 }
-
-#health-value::before { background-image: url('/icons/heart.svg'); }
-#magic-value::before { background-image: url('/icons/magic.svg'); }
-#inventory-count::before { background-image: url('/icons/backpack.svg'); }
-#moral-value::before { background-image: url('/icons/scales.svg'); }

@@ -41,6 +41,9 @@ class Game {
     }
 
     renderChapter(chapter) {
+        console.log('[DEBUG] Chapter background:', chapter.background); // Добавить эту строку
+        const gameContainer = document.getElementById('game-container');
+
         const textDisplay = document.getElementById('text-display');
         const choicesBox = document.getElementById('choices');
         
