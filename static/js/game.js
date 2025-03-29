@@ -17,29 +17,38 @@ class Game {
     }
 
 	async loadChapter(chapterId) {
-        if (!chapterId) { // Добавлена проверка на пустой ID
-			this.showError("Глава не указана");
+		if (!chapterId) {
+			this.showError("Не указан ID главы");
 			return;
 		}
-
-        if (this.isLoading) return;
-        
-        this.isLoading = true;
-        try {
-            const response = await fetch(`/chapters/${chapterId}.json`);
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            
-            const chapter = await response.json();
-            this.renderChapter(chapter);
-            
-        } catch (error) {
-            console.error('Error loading chapter:', error);
-            this.showError(error.message);
-        } finally {
-            this.isLoading = false;
-        }
-		console.log('Загружена глава:', chapterId, 'Фон:', chapter.background);
-    }
+	
+		if (this.isLoading) return;
+		this.isLoading = true;
+	
+		try {
+			console.log(`[DEBUG] Загрузка главы: ${chapterId}`);
+			const response = await fetch(`/chapters/${chapterId}.json?t=${Date.now()}`);
+			
+			if (!response.ok) {
+				throw new Error(`Ошибка HTTP: ${response.status} ${response.statusText}`);
+			}
+	
+			const chapter = await response.json();
+			
+			if (!chapter?.id) {
+				throw new Error("Некорректный формат файла главы");
+			}
+	
+			this.states.currentChapter = chapterId;
+			this.renderChapter(chapter);
+	
+		} catch (error) {
+			console.error("Ошибка загрузки:", error);
+			this.showError(`Ошибка в главе ${chapterId}: ${error.message}`);
+		} finally {
+			this.isLoading = false;
+		}
+	}
 
     renderChapter(chapter) {
 		const textDisplay = document.getElementById('text-display');
