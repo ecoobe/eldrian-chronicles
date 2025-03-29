@@ -31,10 +31,16 @@ body {
 }
 
 #game-container {
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: #1a1a1a; /* Фолбэк цвет */
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    z-index: 1;
+    opacity: 1 !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
 }
 
 /* Исправленный блок статистики */
