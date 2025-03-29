@@ -53,18 +53,6 @@ class Game {
         }
     }
 
-	async preloadBackgrounds() {
-		const backgrounds = [
-			'village_burning.webp',
-			'burning_house.webp',
-			'forest.webp'
-		];
-		
-		backgrounds.forEach(bg => {
-			new Image().src = `/backgrounds/${bg}`;
-		});
-	}
-
     async renderChapter(chapter) {
         this.currentChapterData = chapter;
         const textDisplay = document.getElementById('text-display');
