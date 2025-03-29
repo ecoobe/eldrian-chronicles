@@ -1,0 +1,25 @@
+{
+    "id": "chapter1_medallion_inspect",
+    "background": "burning_house.webp",
+    "text": "Вы фокусируете магию на медальоне. Изделие начинает вибрировать, излучая багровый свет...",
+    "choices": [
+        {
+            "text": "Выбросить артефакт",
+            "next": "chapter2",
+            "effects": {
+                "moral": 10,
+                "lira_trust": 2
+            }
+        },
+        {
+            "text": "Спрятать в инвентарь (Инвентарь <10)",
+            "next": "chapter2",
+            "requires": {"inventory": 9},
+            "effects": {
+                "inventory": ["cursed_medallion"],
+                "magic": -1,
+                "moral": -15
+            }
+        }
+    ]
+}

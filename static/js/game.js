@@ -38,6 +38,7 @@ class Game {
         } finally {
             this.isLoading = false;
         }
+		console.log('Загружена глава:', chapterId, 'Фон:', chapter.background);
     }
 
     renderChapter(chapter) {
