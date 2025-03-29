@@ -194,3 +194,20 @@ body {
     padding: 0.5rem 1rem;
     margin-top: 1rem;
 }
+
+.text-box {
+    min-height: 120px;
+    overflow: hidden;
+}
+
+.typewriter-cursor::after {
+    content: '|';
+    animation: blink 1s infinite;
+    color: var(--accent-copper);
+}
+
+@keyframes blink {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}

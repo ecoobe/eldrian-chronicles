@@ -1,4 +1,5 @@
 document.getElementById('start-game-btn').addEventListener('click', initGame);
+let currentAnimationFrame = null;
 
 class Game {
     constructor() {
@@ -183,6 +184,65 @@ class Game {
 
     init() {
         this.loadChapter(this.states.currentChapter);
+    }
+
+	async renderChapter(chapter) {
+        // Анимация затемнения
+        this.startBgTransition();
+        
+        // Анимация текста
+        await this.typewriterEffect(chapter.text);
+        
+        // Показ кнопок с задержкой
+        this.showChoicesWithDelay(chapter.choices);
+    }
+
+    startBgTransition() {
+        const gameContainer = document.getElementById('game-container');
+        gameContainer.classList.add('changing-bg');
+        setTimeout(() => {
+            gameContainer.style.backgroundImage = `url('/backgrounds/${chapter.background}')`;
+            gameContainer.classList.remove('changing-bg');
+        }, 800);
+    }
+
+    async typewriterEffect(text) {
+        const textDisplay = document.getElementById('text-display');
+        textDisplay.innerHTML = '';
+        let index = 0;
+        
+        return new Promise(resolve => {
+            const typing = setInterval(() => {
+                textDisplay.innerHTML += text[index];
+                if(++index === text.length) {
+                    clearInterval(typing);
+                    resolve();
+                }
+            }, 30); // Скорость печати (мс на символ)
+        });
+    }
+
+    showChoicesWithDelay(choices) {
+        const choicesBox = document.getElementById('choices');
+        choicesBox.innerHTML = '';
+        
+        choices.forEach((choice, i) => {
+            setTimeout(() => {
+                const btn = this.createChoiceButton(choice);
+                btn.style.opacity = 0;
+                choicesBox.appendChild(btn);
+                this.fadeInElement(btn);
+            }, i * 200); // Задержка между появлением кнопок
+        });
+    }
+
+    fadeInElement(element) {
+        let opacity = 0;
+        const timer = setInterval(() => {
+            opacity += 0.1;
+            element.style.opacity = opacity;
+            if(opacity >= 1) clearInterval(timer);
+        }, 50);
     }
 }
 
