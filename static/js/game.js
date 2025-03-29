@@ -36,22 +36,26 @@ class Game {
         
         document.getElementById('text-display').innerHTML = chapter.text;
         
+        // Явное обновление статистики
+        this.updateStatsDisplay(); // <-- Добавлен вызов здесь
+        
         const choicesBox = document.getElementById('choices');
         choicesBox.innerHTML = '';
-        
-        // Обновляем статистики
-        this.updateStatsDisplay();
-        
+
         chapter.choices.forEach(choice => {
+            // Исправленная проверка условий
             if (choice.hidden && !this.checkCondition(choice.condition)) return;
 
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.innerHTML = choice.text;
             
-            btn.disabled = !this.checkRequirements(choice.requires);
+            // Исправленная проверка требований
+            btn.disabled = !this.checkRequirements(choice.requires || {});
             
+            // Улучшенный обработчик
             btn.addEventListener('click', () => {
+                console.log('Choice selected:', choice.text); // Отладочный вывод
                 this.applyEffects(choice.effects || {});
                 this.states.currentChapter = choice.next;
                 this.loadChapter(choice.next);
@@ -98,10 +102,15 @@ class Game {
     }
 
     updateStatsDisplay() {
-        // Обновление прогресс-баров
+        // Обновление всех элементов статистики
         document.getElementById('health-bar').style.width = `${this.states.health}%`;
-        document.getElementById('magic-bar').style.width = `${Math.min(this.states.magic * 10, 100)}%`;
-        document.getElementById('inventory-count').textContent = `${this.states.inventory.length}/10`;
+        document.getElementById('magic-bar').style.width = `${this.states.magic}%`;
+        document.getElementById('inventory-count').textContent = 
+            `${this.states.inventory.length}/10`;
+        
+        // Добавьте эти элементы в ваш HTML
+        document.getElementById('lira-trust').textContent = this.states.lira_trust;
+        document.getElementById('moral-value').textContent = this.states.moral;
     }
 
     init() {

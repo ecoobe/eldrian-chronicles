@@ -15,23 +15,28 @@
 
   <div id="game-container" class="hidden">
     <div class="stats-box">
-      <div class="stat-item">
-        <span>❤️ Здоровье:</span>
-        <div class="progress-bar">
-          <div class="progress-fill" id="health-bar"></div>
-        </div>
-      </div>
-      <div class="stat-item">
-        <span>✨ Магия:</span>
-        <div class="progress-bar">
-          <div class="progress-fill" id="magic-bar"></div>
-        </div>
-      </div>
-      <div class="stat-item">
-        <span>🎒 Инвентарь:</span>
-        <span id="inventory-count">0/5</span>
-      </div>
-    </div>
+		<div class="stat-item">
+			<span>❤️ Здоровье: <span id="health-value">${this.states.health}</span>%</span>
+			<div class="progress-bar">
+				<div class="progress-fill" id="health-bar"></div>
+			</div>
+		</div>
+		<div class="stat-item">
+			<span>✨ Магия: <span id="magic-value">${this.states.magic}</span></span>
+			<div class="progress-bar">
+				<div class="progress-fill" id="magic-bar"></div>
+			</div>
+		</div>
+		<div class="stat-item">
+			<span>🤝 Доверие Лиры: <span id="lira-trust">0</span></span>
+		</div>
+		<div class="stat-item">
+			<span>🎒 Инвентарь: <span id="inventory-count">0/10</span></span>
+		</div>
+		<div class="stat-item">
+			<span>⚖️ Мораль: <span id="moral-value">50</span></span>
+		</div>
+	</div>
 
     <div id="text-display" class="text-box"></div>
     <div id="choices" class="choices-box"></div>

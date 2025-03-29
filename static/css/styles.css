@@ -7,17 +7,17 @@
 	--text-primary: #e8e1d7;
   }
   
-  body {
+body {
 	margin: 0;
 	padding: 0;
 	height: 100vh;
 	overflow: hidden;
 	font-family: 'MedievalSharp', cursive;
 	color: var(--text-primary);
-  }
+}
   
-  /* Главное меню */
-  .main-menu {
+/* Главное меню */
+.main-menu {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -30,10 +30,10 @@
 	align-items: center;
 	justify-content: center;
 	z-index: 1000;
-  }
-  
-  /* Игровой интерфейс */
-  #game-container {
+}
+
+/* Игровой интерфейс */
+#game-container {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -42,10 +42,10 @@
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
-  }
+}
   
-  /* Добавляем оверлей для текста */
-  #game-container::after {
+/* Добавляем оверлей для текста */
+#game-container::after {
 	content: "";
 	position: fixed;
 	top: 0;
@@ -54,9 +54,9 @@
 	height: 100vh;
 	background: rgba(0,0,0,0.3);
 	z-index: -1;
-  }
-  
-  .stats-box {
+}
+
+.stats-box {
 	position: fixed;
 	top: 20px;
 	left: 20px;
@@ -65,9 +65,9 @@
 	border-radius: 8px;
 	border: 1px solid var(--accent-copper);
 	backdrop-filter: blur(2px);
-  }
-  
-  .text-box {
+}
+
+.text-box {
 	position: fixed;
 	bottom: 200px;
 	left: 50%;
@@ -79,9 +79,9 @@
 	border: 2px solid var(--accent-blue);
 	border-radius: 12px;
 	backdrop-filter: blur(5px);
-  }
-  
-  .choices-box {
+}
+
+.choices-box {
 	position: fixed;
 	bottom: 50px;
 	left: 50%;
@@ -91,19 +91,19 @@
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
-  }
-  
-  .choice-btn {
+}
+
+.choice-btn {
 	background: rgba(40,40,40,0.9);
 	border: 1px solid #555;
 	color: white;
 	padding: 14px;
 	border-radius: 6px;
 	transition: all 0.2s ease;
-  }
-  
-  /* Адаптивность */
-  @media (max-width: 768px) {
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
 	.text-box {
 	  width: 95%;
 	  bottom: 160px;
@@ -114,4 +114,39 @@
 	  width: 95%;
 	  bottom: 20px;
 	}
-  }
+}
+
+.stat-item span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#health-value, 
+#magic-value,
+#lira-trust,
+#moral-value {
+    color: var(--accent-copper);
+    min-width: 40px;
+    display: inline-block;
+    text-align: right;
+}
+
+.choice-btn {
+    /* Исправленные стили кнопок */
+    padding: 12px 24px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.choice-btn:not(:disabled):hover {
+    background: var(--accent-blue);
+    transform: translateY(-2px);
+}
+
+.choice-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: grayscale(80%);
+}
