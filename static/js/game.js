@@ -1,22 +1,5 @@
 document.getElementById('start-game-btn').addEventListener('click', initGame);
 
-let isGameInitialized = false;
-const game = new Game();
-
-function initGame() {
-    if (isGameInitialized) {
-        console.log('Игра уже запущена');
-        return;
-    }
-    
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('game-container').classList.remove('hidden');
-    document.getElementById('start-game-btn').disabled = true;
-    
-    game.init();
-    isGameInitialized = true;
-}
-
 class Game {
     constructor() {
         this.states = {
@@ -161,4 +144,26 @@ class Game {
     init() {
         this.loadChapter(this.states.currentChapter);
     }
+}
+
+const game = new Game(); // Перемещено перед использованием
+
+document.getElementById('start-game-btn').addEventListener('click', () => {
+    initGame();
+});
+
+let isGameInitialized = false;
+
+function initGame() {
+    if (isGameInitialized) {
+        console.log('Игра уже запущена');
+        return;
+    }
+    
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('game-container').classList.remove('hidden');
+    document.getElementById('start-game-btn').disabled = true;
+    
+    game.init();
+    isGameInitialized = true;
 }
