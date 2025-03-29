@@ -1,43 +1,72 @@
 {
     "id": "chapter1",
-    "background": "village_burning.webp",
-    "text": "Пламя лижет стены вашей хижины. Воздух горький от пепла, где-то вдали кричит женщина. Вы замечаете:\n\n1. Детскую куклу в дверном проёме\n2. Кровавый след к сараю\n3. Мерцающий символ на полу\n4. Открытый погреб\n5. Странную тень у колодца",
+    "background": "village_apocalypse.webp",
+    "text": "Адский рассвет. Небо цвета запёкшейся крови. Выберите три действия из доступных:\n\n1. Спасти соседского мальчика из-под горящей телеги\n2. Изучить странные символы на церковной стене\n3. Перевязать раненую женщину у колодца\n4. Обыскать тело инквизитора\n5. Следовать за чёрным котом в лес\n6. Проверить тайник под кузницей\n7. Заговорить с сумасшедшим стариком",
     "choices": [
         {
-            "text": "Схватить куклу и бежать к дому старосты",
-            "next": "chapter1_rescue_child",
+            "text": "Спасти ребёнка [Сила 3+]",
+            "next": "chapter1_child_rescue",
+            "requires": {"strength": 3},
             "effects": {
-                "health": -20,
-                "inventory": ["torn_doll"],
-                "moral": 10
-            },
-            "requires": {"health": ">30"}
-        },
-        {
-            "text": "Исследовать кровавый след",
-            "next": "chapter1_wounded_guard",
-            "effects": {"perception": 1},
-            "hidden": true
-        },
-        {
-            "text": "Активировать символ Тенью Прошлого",
-            "next": "chapter1_vision",
-            "requires": {"magic": 1},
-            "effects": {"magic": -1, "lira_trust": 2}
-        },
-        {
-            "text": "Спрятаться в погребе",
-            "next": "chapter1_basement",
-            "effects": {
-                "inventory": ["rusty_key"],
-                "moral": -5
+                "health": -40,
+                "moral": 15,
+                "inventory": ["childs_amulet"]
             }
         },
         {
-            "text": "Преследовать тень у колодца",
-            "next": "chapter1_shadow_figure",
-            "requires": {"stealth": 2},
+            "text": "Исследовать символы [Магия 2+]",
+            "next": "chapter1_occult_investigation",
+            "requires": {"magic": 2},
+            "effects": {
+                "magic": 1,
+                "church_hostility": 1
+            }
+        },
+        {
+            "text": "Помочь женщине [Медицина 1+]",
+            "next": "chapter1_healing",
+            "requires": {"healing": 1},
+            "effects": {
+                "healing": 2,
+                "inventory": ["herbal_pouch"]
+            }
+        },
+        {
+            "text": "Обыскать тело [Скрытность 4+]",
+            "next": "chapter1_loot_corpse",
+            "requires": {"stealth": 4},
+            "effects": {
+                "inventory": ["inquisitor_seal"],
+                "moral": -10
+            },
             "hidden": true
+        },
+        {
+            "text": "Следовать за котом [Ловкость 5+]",
+            "next": "chapter1_black_cat",
+            "requires": {"agility": 5},
+            "effects": {
+                "fate": 1,
+                "inventory": ["mysterious_feather"]
+            }
+        },
+        {
+            "text": "Проверить тайник [Знание локации]",
+            "next": "chapter1_secret_cache",
+            "requires": {"inventory": ["old_map"]},
+            "hidden": true,
+            "effects": {
+                "inventory": ["ancient_relic"]
+            }
+        },
+        {
+            "text": "Поговорить с стариком [Выносливость 2+]",
+            "next": "chapter1_mad_prophet",
+            "requires": {"stamina": 2},
+            "effects": {
+                "insight": 3,
+                "sanity": -1
+            }
         }
     ]
 }

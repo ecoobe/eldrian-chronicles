@@ -273,4 +273,27 @@ body {
         padding: 10px;
         min-width: 200px;
     }
+
+	.choice-btn[data-status="hidden"] {
+		opacity: 0.5;
+		border: 1px dashed var(--accent-copper);
+		animation: pulseHidden 2s infinite;
+	}
+
+	@keyframes pulseHidden {
+		0% { opacity: 0.3; }
+		50% { opacity: 0.6; }
+		100% { opacity: 0.3; }
+	}
+
+	.choice-btn[data-danger="true"] {
+		background: linear-gradient(45deg, #8b0000, #4a0000);
+		border-color: #ff4444;
+	}
+
+	.choice-btn[data-secret="true"]::after {
+		content: '???';
+		margin-left: 10px;
+		color: var(--accent-copper);
+	}
 }

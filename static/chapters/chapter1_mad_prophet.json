@@ -1,0 +1,34 @@
+{
+    "id": "chapter1_mad_prophet",
+    "background": "madman.webp",
+    "text": "Старик рисует кровью на стене: \"Ищи Плачущий Камень под древним дубом. Только он...\" Его перебивает стрела в груди.\n\n1. Попытаться спасти\n2. Обыскать тело\n3. Сбежать",
+    "choices": [
+        {
+            "text": "Спасти старика [Медицина 5+]",
+            "next": "chapter1_save_prophet",
+            "requires": {"healing": 5},
+            "effects": {
+                "inventory": ["encoded_scroll"],
+                "sanity": -2
+            }
+        },
+        {
+            "text": "Обыскать быстро [Ловкость 3+]",
+            "next": "chapter1_loot_prophet",
+            "requires": {"agility": 3},
+            "effects": {
+                "inventory": ["bloody_note"],
+                "moral": -15
+            }
+        },
+        {
+            "text": "Ринуться в бой [Сила 4+]",
+            "next": "chapter1_archer_fight",
+            "requires": {"strength": 4},
+            "effects": {
+                "health": -30,
+                "combat_skill": 1
+            }
+        }
+    ]
+}

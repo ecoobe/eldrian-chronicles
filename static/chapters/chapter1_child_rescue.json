@@ -1,0 +1,28 @@
+{
+    "id": "chapter1_child_rescue",
+    "background": "burning_cart.webp",
+    "text": "Вы вытаскиваете мальчика, но его рука обожжена. Вдали слышен рёв толпы:\n\n1. Спрятаться в хлеву\n2. Бежать к реке\n3. Использовать амулет для лечения",
+    "choices": [
+        {
+            "text": "Укрытие в хлеву",
+            "next": "chapter1_barn_hideout",
+            "effects": {"stealth": 2},
+            "requires": {"perception": 3}
+        },
+        {
+            "text": "Бегство к реке [Выносливость 4+]",
+            "next": "chapter1_river_escape",
+            "requires": {"stamina": 4},
+            "effects": {"health": -20}
+        },
+        {
+            "text": "Использовать амулет [Магия 3+]",
+            "next": "chapter1_amulet_magic",
+            "requires": {"magic": 3},
+            "effects": {
+                "magic": -2,
+                "child_status": "healed"
+            }
+        }
+    ]
+}

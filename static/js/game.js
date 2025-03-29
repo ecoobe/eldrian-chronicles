@@ -17,7 +17,12 @@ class Game {
 			willpower: 5,
             persuasion: 0,
             intimidation: 0,
-            revealedChapters: []
+            revealedChapters: [],
+			fate: 0,
+            sanity: 10,
+            church_hostility: 0,
+            combat_skill: 0,
+            insight: 0
         };
         this.isLoading = false;
         this.currentChapterData = null;
@@ -266,6 +271,13 @@ class Game {
     checkRequirements(requires) {
 		return Object.entries(requires || {}).every(([key, value]) => {
 			// Обработка сравнений
+			if (key.endsWith('_status')) {
+				return this.states[key] === value;
+			}
+			if (typeof value === 'string' && value.includes('+')) {
+				return this.states[key] >= parseInt(value);
+			}
+
 			if (key === 'revealed') {
 				return this.states.revealedChapters.includes(value);
 			}
@@ -293,6 +305,12 @@ class Game {
 
     applyEffects(effects) {
         Object.entries(effects).forEach(([key, value]) => {
+			if (key === 'fate') {
+				this.states.fate = Math.min(10, this.states.fate + value);
+			}
+			if (key === 'sanity') {
+				this.states.sanity = Math.max(0, this.states.sanity + value);
+			}
             if (key === 'inventory') {
                 this.states.inventory.push(...[].concat(value));
             } else if (this.states.hasOwnProperty(key)) {

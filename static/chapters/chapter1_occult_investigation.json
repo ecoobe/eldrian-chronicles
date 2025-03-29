@@ -1,0 +1,33 @@
+{
+    "id": "chapter1_occult_investigation",
+    "background": "occult_wall.webp",
+    "text": "Символы складываются в пророчество:\n\"Когда три печати падут, Серый восстанет из пепла\". Ваши действия:\n\n1. Стереть символы\n2. Сделать зарисовку\n3. Прикоснуться к центру",
+    "choices": [
+        {
+            "text": "Уничтожить знаки",
+            "next": "chapter1_erase_symbols",
+            "effects": {
+                "church_hostility": -1,
+                "moral": 5
+            }
+        },
+        {
+            "text": "Зарисовать [Интеллект 4+]",
+            "next": "chapter1_sketch",
+            "requires": {"intelligence": 4},
+            "effects": {
+                "inventory": ["prophecy_sketch"],
+                "insight": 2
+            }
+        },
+        {
+            "text": "Активировать [Риск!]",
+            "next": "chapter1_activate_prophecy",
+            "effects": {
+                "fate": 3,
+                "health": -50,
+                "magic": 5
+            }
+        }
+    ]
+}
