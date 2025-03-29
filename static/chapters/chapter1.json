@@ -1,35 +1,18 @@
 {
-	"id": "chapter1",
-	"background": "village_burning.webp",
-	"text": "Пламя поглощает вашу деревню. Воздух наполнен криками и треском горящих балок. Перед вами:",
-	"choices": [
-	  {
-		"text": "Броситься спасать ребёнка [Рискованно]",
-		"next": "chapter1_rescue",
-		"requires": {"health": 20},
-		"effects": {
-		  "health": -80,
-		  "inventory": ["child_medallion"],
-		  "moral": 15
-		}
-	  },
-	  {
-		"text": "Спрятаться в подвале [Осторожно]",
-		"next": "chapter1_basement",
-		"effects": {
-		  "inventory": ["rune_of_silence"],
-		  "moral": -10
-		}
-	  },
-	  {
-		"text": "Использовать Тень Прошлого [Тайно]",
-		"next": "chapter1_shadow",
-		"hidden": true,
-		"condition": "inventory.includes('shadow_vial')",
-		"effects": {
-		  "magic": 2,
-		  "health": -30
-		}
-	  }
-	]
-  }
+    "id": "chapter1",
+    "background": "village_burning.webp",
+    "text": "Перед вами пылающая деревня Ветролом...",
+    "choices": [
+        {
+            "text": "Спасти ребёнка",
+            "next": "chapter1_rescue",
+            "requires": {"health": 20},
+            "effects": {"health": -80, "moral": 15}
+        },
+        {
+            "text": "Спрятаться в подвале",
+            "next": "chapter1_basement",
+            "effects": {"inventory": ["rune_of_silence"]}
+        }
+    ]
+}

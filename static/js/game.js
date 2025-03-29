@@ -17,47 +17,46 @@ class Game {
             currentChapter: 'chapter1',
             inventory: []
         };
+        this.renderChapter = this.renderChapter.bind(this);
     }
 
     async loadChapter(chapterId) {
         try {
-            console.log('Loading chapter:', chapterId); // Логирование загрузки
+            console.log(`Loading chapter: ${chapterId}`);
             const response = await fetch(`/chapters/${chapterId}.json`);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
             const chapter = await response.json();
             this.renderChapter(chapter);
         } catch (error) {
-            console.error('Error loading chapter:', error);
+            console.error('Error:', error);
             document.getElementById('text-display').innerHTML = 
-                `<p style="color:red">Ошибка загрузки главы: ${error.message}</p>`;
+                `<p style="color: red">Ошибка загрузки: ${error.message}</p>`;
         }
     }
 
     renderChapter(chapter) {
+        console.log('Rendering chapter:', chapter.id);
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.backgroundImage = `url('/backgrounds/${chapter.background}')`;
-        
         document.getElementById('text-display').innerHTML = chapter.text;
         this.updateStatsDisplay();
         
         const choicesBox = document.getElementById('choices');
         choicesBox.innerHTML = '';
-
+        
         chapter.choices.forEach(choice => {
             if (choice.hidden && !this.checkCondition(choice.condition)) return;
-
+            
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
-            btn.innerHTML = choice.text;
-            btn.disabled = !this.checkRequirements(choice.requires || {});
+            btn.textContent = choice.text;
+            btn.disabled = !this.checkRequirements(choice.requires);
             
             btn.addEventListener('click', () => {
-                console.log('Choice selected:', choice.text);
+                console.log('Selected choice:', choice.text);
                 this.applyEffects(choice.effects || {});
                 this.states.currentChapter = choice.next;
                 this.loadChapter(choice.next);
-				this.updateStatsDisplay();
-                this.renderChoices(chapter.choices);
             });
             
             choicesBox.appendChild(btn);
@@ -78,13 +77,11 @@ class Game {
 
     checkCondition(condition) {
         if (!condition) return true;
-        if (typeof condition !== 'string') return false;
-        
         if (condition.startsWith('inventory.includes')) {
             const item = condition.match(/'([^']+)'/)?.[1];
             return item ? this.states.inventory.includes(item) : false;
         }
-        return false;
+        return this.states[condition] !== undefined;
     }
 
     applyEffects(effects) {
@@ -101,17 +98,15 @@ class Game {
     }
 
     updateStatsDisplay() {
-        // Прогресс-бары
         document.getElementById('health-bar').style.width = `${this.states.health}%`;
-        document.getElementById('magic-bar').style.width = `${this.states.magic}%`;
-        
-        // Текстовые значения
         document.getElementById('health-value').textContent = this.states.health;
+        document.getElementById('magic-bar').style.width = `${this.states.magic}%`;
         document.getElementById('magic-value').textContent = this.states.magic;
-        document.getElementById('lira-trust').textContent = this.states.lira_trust;
-        document.getElementById('moral-value').textContent = this.states.moral;
         document.getElementById('inventory-count').textContent = 
             `${this.states.inventory.length}/10`;
+        document.getElementById('lira-trust').textContent = this.states.lira_trust;
+        document.getElementById('moral-value').textContent = this.states.moral;
+        console.log('Updated stats:', this.states);
     }
 
     init() {
