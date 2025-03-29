@@ -31,41 +31,49 @@ class Game {
     }
 
     renderChapter(chapter) {
-        // Update background
+        // Сбрасываем фон при каждой загрузке главы
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.backgroundImage = `url('/backgrounds/${chapter.background}')`;
-
-        // Update text
-        document.getElementById('text-display').innerHTML = chapter.text;
-
-        // Clear previous choices
+        
+        // Очищаем предыдущие кнопки
         const choicesBox = document.getElementById('choices');
         choicesBox.innerHTML = '';
-
-        // Create new choices
+        
         chapter.choices.forEach(choice => {
-            // Check hidden condition
+            // Проверяем условия для скрытых выборов
             if (choice.hidden && !this.checkCondition(choice.condition)) return;
 
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.innerHTML = choice.text;
-
-            // Check requirements
-            if (choice.requires && !this.checkRequirements(choice.requires)) {
-                btn.disabled = true;
-                btn.innerHTML += ` (Требуется: ${this.parseRequirements(choice.requires)})`;
-            }
-
-            // Add click handler
+            
+            // Проверка требований
+            const requirementsMet = this.checkRequirements(choice.requires);
+            btn.disabled = !requirementsMet;
+            
+            // Добавляем обработчик
             btn.addEventListener('click', () => {
-                if (choice.effects) this.applyEffects(choice.effects);
+                this.applyEffects(choice.effects || {});
                 this.states.currentChapter = choice.next;
                 this.loadChapter(choice.next);
             });
-
+            
             choicesBox.appendChild(btn);
         });
+    }
+
+    checkRequirements(requires) {
+        if (!requires) return true;
+        return Object.entries(requires).every(([key, value]) => {
+            if (key === 'inventory') {
+                return Array.isArray(value) 
+                    ? value.every(item => this.states.inventory.includes(item))
+                    : this.states.inventory.includes(value);
+            }
+            return this.states[key] >= value;
+    });
+    
+
 
         // Update stats display
         document.getElementById('magic-level').textContent = this.states.magic;

@@ -19,7 +19,8 @@
   
   /* Главное меню */
   .main-menu {
-	position: fixed;
+    position: fixed;
+    z-index: 1000;
 	width: 100vw;
 	height: 100vh;
 	background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
@@ -41,11 +42,16 @@
   
   /* Игровой интерфейс */
   #game-container {
-	position: relative;
-	height: 100vh;
-	background-size: cover;
-	transition: background-image 0.8s ease-in-out;
-  }
+    position: fixed; /* Было: relative */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
   
   .stats-box {
 	position: fixed;
