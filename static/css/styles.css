@@ -38,20 +38,19 @@ body {
     height: 100vh;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
 }
 
 .stats-box {
     position: fixed;
     top: 20px;
     left: 20px;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.85);
     padding: 15px;
     border-radius: 8px;
     border: 1px solid var(--accent-copper);
     z-index: 9999;
-    min-width: 220px;
-    backdrop-filter: blur(2px);
+    min-width: 240px;
+    backdrop-filter: blur(3px);
 }
 
 .stat-item {
@@ -82,12 +81,12 @@ body {
     transform: translateX(-50%);
     width: 80%;
     max-width: 800px;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.9);
     padding: 20px;
     border: 2px solid var(--accent-blue);
     border-radius: 12px;
-    backdrop-filter: blur(5px);
     z-index: 1000;
+    backdrop-filter: blur(5px);
 }
 
 .choices-box {

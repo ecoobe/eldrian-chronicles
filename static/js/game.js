@@ -17,13 +17,12 @@ class Game {
             currentChapter: 'chapter1',
             inventory: []
         };
-        this.renderChapter = this.renderChapter.bind(this);
     }
 
     async loadChapter(chapterId) {
         try {
-            console.log(`Loading chapter: ${chapterId}`);
-            const response = await fetch(`/chapters/${chapterId}.json`);
+            console.log(`[DEBUG] Loading chapter: ${chapterId}`);
+            const response = await fetch(`/chapters/${chapterId}.json?t=${Date.now()}`);
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
             const chapter = await response.json();
             this.renderChapter(chapter);
@@ -35,32 +34,39 @@ class Game {
     }
 
     renderChapter(chapter) {
-        console.log('Rendering chapter:', chapter.id);
+        console.log('[DEBUG] Rendering chapter:', chapter);
+        
+        // Обновление фона
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.backgroundImage = `url('/backgrounds/${chapter.background}')`;
-        document.getElementById('text-display').innerHTML = chapter.text;
-        this.updateStatsDisplay();
         
+        // Обновление текста
+        document.getElementById('text-display').innerHTML = chapter.text;
+        
+        // Очистка старых кнопок
         const choicesBox = document.getElementById('choices');
         choicesBox.innerHTML = '';
         
+        // Создание новых кнопок
         chapter.choices.forEach(choice => {
             if (choice.hidden && !this.checkCondition(choice.condition)) return;
-            
+
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.textContent = choice.text;
-            btn.disabled = !this.checkRequirements(choice.requires);
-            
+            btn.disabled = !this.checkRequirements(choice.requires || {});
+
             btn.addEventListener('click', () => {
-                console.log('Selected choice:', choice.text);
+                console.log('[DEBUG] Choice selected:', choice);
                 this.applyEffects(choice.effects || {});
                 this.states.currentChapter = choice.next;
                 this.loadChapter(choice.next);
             });
-            
+
             choicesBox.appendChild(btn);
         });
+
+        this.updateStatsDisplay();
     }
 
     checkRequirements(requires) {
@@ -98,15 +104,19 @@ class Game {
     }
 
     updateStatsDisplay() {
+        // Прогресс-бары
         document.getElementById('health-bar').style.width = `${this.states.health}%`;
-        document.getElementById('health-value').textContent = this.states.health;
         document.getElementById('magic-bar').style.width = `${this.states.magic}%`;
+        
+        // Текстовые значения
+        document.getElementById('health-value').textContent = this.states.health;
         document.getElementById('magic-value').textContent = this.states.magic;
         document.getElementById('inventory-count').textContent = 
             `${this.states.inventory.length}/10`;
         document.getElementById('lira-trust').textContent = this.states.lira_trust;
         document.getElementById('moral-value').textContent = this.states.moral;
-        console.log('Updated stats:', this.states);
+        
+        console.log('[DEBUG] Updated stats:', this.states);
     }
 
     init() {
