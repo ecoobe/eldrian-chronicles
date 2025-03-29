@@ -16,6 +16,19 @@ class Game {
         };
         this.isLoading = false;
         this.currentChapterData = null;
+        this.preloadBackgrounds();
+    }
+
+    preloadBackgrounds() {
+        const backgrounds = [
+            'village_burning.webp',
+            'burning_house.webp',
+            'forest.webp',
+            'main_menu.webp'
+        ];
+        backgrounds.forEach(bg => {
+            new Image().src = `/backgrounds/${bg}`;
+        });
     }
 
     async loadChapter(chapterId) {
@@ -57,20 +70,12 @@ class Game {
         const textDisplay = document.getElementById('text-display');
         const choicesBox = document.getElementById('choices');
         
-        // Сброс предыдущего контента
         textDisplay.innerHTML = '';
         choicesBox.innerHTML = '';
 
-        // 1. Анимация фона
         await this.startBgTransition(chapter);
-
-        // 2. Анимация текста
         await this.typewriterEffect(chapter.text);
-
-        // 3. Показ кнопок
         this.showChoicesWithDelay(chapter.choices || []);
-
-        // 4. Обновление статистики
         this.updateStatsDisplay();
     }
 
@@ -87,7 +92,7 @@ class Game {
                 }
                 gameContainer.classList.remove('changing-bg');
                 resolve();
-            }, 800);
+            }, 1200);
         });
     }
 
@@ -114,15 +119,24 @@ class Game {
         const textDisplay = document.getElementById('text-display');
         textDisplay.innerHTML = '<span class="typewriter-cursor"></span>';
         let index = 0;
+        let lastUpdate = 0;
+        const SPEED_PER_CHAR = 60;
 
         return new Promise((resolve) => {
-            const animate = () => {
-                if (index < text.length) {
+            const animate = (timestamp) => {
+                if (!lastUpdate) lastUpdate = timestamp;
+                const delta = timestamp - lastUpdate;
+                
+                if (delta >= SPEED_PER_CHAR && index < text.length) {
                     textDisplay.insertBefore(
                         document.createTextNode(text[index]), 
                         textDisplay.lastChild
                     );
                     index++;
+                    lastUpdate = timestamp;
+                }
+                
+                if (index < text.length) {
                     currentAnimationFrame = requestAnimationFrame(animate);
                 } else {
                     resolve();
@@ -141,7 +155,7 @@ class Game {
                 const btn = this.createChoiceButton(choice);
                 this.fadeInElement(btn);
                 choicesBox.appendChild(btn);
-            }, i * 200);
+            }, i * 400);
         });
     }
 
@@ -157,9 +171,14 @@ class Game {
 
     fadeInElement(element) {
         let opacity = 0;
-        const animate = () => {
-            opacity += 0.1;
+        const DURATION = 800;
+        const startTime = performance.now();
+        
+        const animate = (timestamp) => {
+            const progress = timestamp - startTime;
+            opacity = Math.min(progress / DURATION, 1);
             element.style.opacity = opacity;
+            
             if (opacity < 1) {
                 requestAnimationFrame(animate);
             }
