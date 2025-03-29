@@ -1,4 +1,3 @@
-// game.js
 document.getElementById('start-game-btn').addEventListener('click', () => {
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('game-container').classList.remove('hidden');
@@ -57,6 +56,8 @@ class Game {
                 this.applyEffects(choice.effects || {});
                 this.states.currentChapter = choice.next;
                 this.loadChapter(choice.next);
+				this.updateStatsDisplay();
+                this.renderChoices(chapter.choices);
             });
             
             choicesBox.appendChild(btn);
