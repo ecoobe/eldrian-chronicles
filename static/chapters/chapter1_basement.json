@@ -1,0 +1,12 @@
+{
+    "id": "chapter1_basement",
+    "background": "basement.webp",
+    "text": "Вы находите в подвале древнюю руну...",
+    "choices": [
+        {
+            "text": "Взять руну",
+            "next": "chapter2",
+            "effects": {"inventory": ["rune_of_silence"], "moral": -5}
+        }
+    ]
+}
