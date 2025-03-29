@@ -1,18 +1,15 @@
 {
     "id": "chapter1",
-    "background": "village_burning.webp",
-    "text": "Перед вами пылающая деревня Ветролом...",
+    "text": "Деревня в огне! Что вы сделаете?",
     "choices": [
         {
-            "text": "Спасти ребёнка",
-            "next": "chapter1_rescue",
-            "requires": {"health": 20},
-            "effects": {"health": -80, "moral": 15}
+            "text": "Спасти ребёнка (-30 здоровья)",
+            "next": "chapter2",
+            "effects": {"health": -30}
         },
         {
-            "text": "Спрятаться в подвале",
-            "next": "chapter1_basement",
-            "effects": {"inventory": ["rune_of_silence"]}
+            "text": "Искать укрытие",
+            "next": "chapter3"
         }
     ]
 }
