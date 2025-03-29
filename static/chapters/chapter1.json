@@ -1,23 +1,42 @@
 {
     "id": "chapter1",
     "background": "village_burning.webp",
-    "text": "Пламя пожирает ваш дом. Воздух наполнен криками и запахом гари. Вы замечаете:\n1. Детскую куклу в огне\n2. Странный блеск в подвале\n3. Тень с клеймом на стене",
+    "text": "Пламя лижет стены вашей хижины. Воздух горький от пепла, где-то вдали кричит женщина. Вы замечаете:\n\n1. Детскую куклу в дверном проёме\n2. Кровавый след к сараю\n3. Мерцающий символ на полу\n4. Открытый погреб\n5. Странную тень у колодца",
     "choices": [
         {
-            "text": "Нырнуть в пламя за ребёнком",
-            "next": "chapter1_rescue_hard",
-            "effects": {"health": -90, "moral": 20},
-            "requires": {"health": ">50"}
+            "text": "Схватить куклу и бежать к дому старосты",
+            "next": "chapter1_rescue_child",
+            "effects": {
+                "health": -20,
+                "inventory": ["torn_doll"],
+                "moral": 10
+            },
+            "requires": {"health": ">30"}
         },
         {
-            "text": "Исследовать подвал",
-            "next": "chapter1_basement_secret",
-            "effects": {"perception": 2}
+            "text": "Исследовать кровавый след",
+            "next": "chapter1_wounded_guard",
+            "effects": {"perception": 1},
+            "hidden": true
         },
         {
-            "text": "Преследовать тень",
-            "next": "chapter1_shadow",
+            "text": "Активировать символ Тенью Прошлого",
+            "next": "chapter1_vision",
             "requires": {"magic": 1},
+            "effects": {"magic": -1, "lira_trust": 2}
+        },
+        {
+            "text": "Спрятаться в погребе",
+            "next": "chapter1_basement",
+            "effects": {
+                "inventory": ["rusty_key"],
+                "moral": -5
+            }
+        },
+        {
+            "text": "Преследовать тень у колодца",
+            "next": "chapter1_shadow_figure",
+            "requires": {"stealth": 2},
             "hidden": true
         }
     ]

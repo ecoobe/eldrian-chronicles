@@ -1,0 +1,23 @@
+{
+    "id": "chapter1_shadow_figure",
+    "background": "well_of_shadows.webp",
+    "text": "У колодца стоит фигура в плаще с символами солнца. Она поворачивается - это ваша сестра Алисия! \"Прости, брат... Они обещали вернуть мать\"",
+    "choices": [
+        {
+            "text": "Атаковать её",
+            "next": "chapter1_sister_fight",
+            "effects": {"moral": -30, "inventory": ["bloodied_dagger"]}
+        },
+        {
+            "text": "Убедить остановиться",
+            "next": "chapter1_persuade",
+            "requires": {"persuasion": 5},
+            "effects": {"elina_trust": 3}
+        },
+        {
+            "text": "Броситься в колодец",
+            "next": "chapter1_well_escape",
+            "effects": {"health": -60, "inventory": ["ancient_coins"]}
+        }
+    ]
+}

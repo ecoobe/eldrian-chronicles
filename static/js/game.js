@@ -13,7 +13,11 @@ class Game {
             health: 100,
             currentChapter: 'chapter1',
             inventory: [],
-            endings_unlocked: []
+            endings_unlocked: [],
+			willpower: 5,
+            persuasion: 0,
+            intimidation: 0,
+            revealedChapters: []
         };
         this.isLoading = false;
         this.currentChapterData = null;
@@ -262,6 +266,9 @@ class Game {
     checkRequirements(requires) {
 		return Object.entries(requires || {}).every(([key, value]) => {
 			// Обработка сравнений
+			if (key === 'revealed') {
+				return this.states.revealedChapters.includes(value);
+			}
 			if (typeof value === 'object') {
 				const operator = Object.keys(value)[0];
 				const compareValue = value[operator];

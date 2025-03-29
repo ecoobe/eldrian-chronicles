@@ -1,0 +1,23 @@
+{
+    "id": "chapter1_vision",
+    "background": "vision_ruins.webp",
+    "text": "Символ вспыхивает синим пламенем. Перед вами возникают видения:\n\n- Жрец в маске клеймит детей\n- Серый Странник подменяет документы\n- Ваше собственное лицо в зеркале крови",
+    "choices": [
+        {
+            "text": "Следовать видениям к руинам",
+            "next": "chapter2_lira_early",
+            "effects": {"magic": 2},
+            "requires": {"willpower": 4}
+        },
+        {
+            "text": "Отречься от дара",
+            "next": "chapter1_basement",
+            "effects": {"magic": -2, "health": 20}
+        },
+        {
+            "text": "Записать символы",
+            "next": "chapter2",
+            "effects": {"inventory": ["mysterious_scroll"]}
+        }
+    ]
+}

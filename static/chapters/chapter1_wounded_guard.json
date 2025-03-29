@@ -1,0 +1,24 @@
+{
+    "id": "chapter1_wounded_guard",
+    "background": "burning_barn.webp",
+    "text": "В сарае вы находите раненого стражника. Его рука зажата под балкой. Он хрипит: \"Они... клеймили нас... как скот...\"",
+    "choices": [
+        {
+            "text": "Освободить его",
+            "next": "chapter1_guard_rescue",
+            "effects": {"health": -40, "moral": 20},
+            "requires": {"strength": 3}
+        },
+        {
+            "text": "Допрашивать о нападавших",
+            "next": "chapter1_interrogate",
+            "effects": {"moral": -15},
+            "requires": {"intimidation": 2}
+        },
+        {
+            "text": "Взять его медальон",
+            "next": "chapter2",
+            "effects": {"inventory": ["guard_medallion"], "moral": -10}
+        }
+    ]
+}
