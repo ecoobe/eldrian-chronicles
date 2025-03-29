@@ -1,0 +1,50 @@
+{
+    "id": "chapter1_occult_altar",
+    "background": "forgotten_catacombs.webp",
+    "text": "Каменный алтарь исписан запретными рунами. В воздухе висит густой миазм. Ваши действия:\n\n1. Принести жертву\n2. Расшифровать надписи\n3. Уничтожить алтарь\n4. Оставить метку для будущего",
+    "environment": {
+        "lighting": "dynamic_torch",
+        "sound": "dripping_water.ogg"
+    },
+    "choices": [
+        {
+            "text": "▸ Жертва собственной кровью [Здоровье 50+]",
+            "next": "chapter1_blood_pact",
+            "requires": {"health": 50},
+            "effects": {
+                "health": -50,
+                "inventory": ["eldritch_tome"],
+                "curse_level": 2
+            }
+        },
+        {
+            "text": "▸ Расшифровать с помощью Тени [Магия 5+]",
+            "next": "chapter1_decipher",
+            "requires": {"magic": 5},
+            "effects": {
+                "insight": 5,
+                "sanity": -3
+            },
+            "minigame": "rune_matching"
+        },
+        {
+            "text": "▸ Взорвать святилище [Инженерия 3+]",
+            "next": "chapter1_altar_destruction",
+            "requires": {"engineering": 3},
+            "effects": {
+                "church_hostility": -2,
+                "moral": 15
+            },
+            "qte": "explosion_sequence"
+        },
+        {
+            "text": "▸ Оставить метку воров [Гильдия Воров]",
+            "next": "chapter1_thieves_guild",
+            "requires": {"guild_member": true},
+            "effects": {
+                "gold": 200,
+                "thieves_trust": 2
+            }
+        }
+    ]
+}

@@ -296,4 +296,34 @@ body {
 		margin-left: 10px;
 		color: var(--accent-copper);
 	}
+	.choice-btn[data-timer]::after {
+		content: '';
+		display: block;
+		height: 3px;
+		background: #c87f5a;
+		animation: timerBar linear forwards;
+	}
+	
+	@keyframes timerBar {
+		from { width: 100%; }
+		to { width: 0%; }
+	}
+	
+	.choice-btn[data-puzzle] {
+		background: repeating-linear-gradient(
+			45deg,
+			rgba(200,127,90,0.1),
+			rgba(200,127,90,0.1) 10px,
+			transparent 10px,
+			transparent 20px
+		);
+		border: 1px solid var(--accent-copper);
+	}
+	
+	.choice-btn[data-qte]::before {
+		content: '⚠';
+		margin-right: 10px;
+		color: #ff4444;
+		animation: pulseDanger 1s infinite;
+	}
 }

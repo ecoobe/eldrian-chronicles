@@ -14,11 +14,11 @@ class Game {
             currentChapter: 'chapter1',
             inventory: [],
             endings_unlocked: [],
-			willpower: 5,
+            willpower: 5,
             persuasion: 0,
             intimidation: 0,
             revealedChapters: [],
-			fate: 0,
+            fate: 0,
             sanity: 10,
             church_hostility: 0,
             combat_skill: 0,
@@ -26,6 +26,7 @@ class Game {
         };
         this.isLoading = false;
         this.currentChapterData = null;
+        this.choiceTimers = new Map();
         this.preloadBackgrounds();
     }
 
@@ -83,6 +84,7 @@ class Game {
         
         textDisplay.innerHTML = '';
         choicesBox.innerHTML = '';
+        this.clearChoiceTimers();
 
         // Обработка вариантов главы
         let content = data;
@@ -96,6 +98,11 @@ class Game {
         this.updateStatsDisplay();
     }
 
+    clearChoiceTimers() {
+        this.choiceTimers.forEach(timer => clearTimeout(timer));
+        this.choiceTimers.clear();
+    }
+
     checkVariantConditions(variant) {
         if (!variant.trigger) return true;
         if (variant.trigger.default) return true;
@@ -105,6 +112,11 @@ class Game {
                 return Array.isArray(value) 
                     ? value.every(item => this.states.inventory.includes(item))
                     : this.states.inventory.includes(value);
+            }
+            if (key === 'not_inventory') {
+                return Array.isArray(value)
+                    ? value.every(item => !this.states.inventory.includes(item))
+                    : !this.states.inventory.includes(value);
             }
             return this.states[key] >= value;
         });
@@ -178,21 +190,25 @@ class Game {
     }
 
     showChoicesWithDelay(choices) {
-		const visibleChoices = choices.filter(choice => {
-			if (choice.hidden) {
-				return this.checkRequirements(choice.requires || {});
-			}
-			return true;
-		});
-		
+        const visibleChoices = choices.filter(choice => {
+            if (choice.hidden) {
+                return this.checkRequirements(choice.requires || {});
+            }
+            return true;
+        });
+        
         const choicesBox = document.getElementById('choices');
         choicesBox.innerHTML = '';
 
-        choices.forEach((choice, i) => {
+        visibleChoices.forEach((choice, i) => {
             setTimeout(() => {
                 const btn = this.createChoiceButton(choice);
                 this.fadeInElement(btn);
                 choicesBox.appendChild(btn);
+                
+                if (choice.timeout) {
+                    this.startChoiceTimer(choice, choice.timeout);
+                }
             }, i * 400);
         });
     }
@@ -224,6 +240,18 @@ class Game {
         requestAnimationFrame(animate);
     }
 
+    startChoiceTimer(choice, duration) {
+        const timer = setTimeout(() => {
+            this.autoResolveChoice(choice);
+        }, duration * 1000);
+        this.choiceTimers.set(choice.id || choice.text, timer);
+    }
+
+    autoResolveChoice(choice) {
+        console.log(`Автовыбор: ${choice.text}`);
+        this.handleChoice(choice);
+    }
+
     handleChoice(choice) {
         if (!choice.next) {
             this.showError('Нет следующей главы');
@@ -232,14 +260,23 @@ class Game {
 
         this.applyEffects(choice.effects || {});
         
-        if (choice.next.startsWith('ending_')) {
+        if (choice.next === 'reveal_chapter') {
+            this.revealChapter(choice.reveal);
+        } else if (choice.next.startsWith('ending_')) {
             this.showEnding(choice.next);
         } else {
             this.loadChapter(choice.next);
         }
     }
 
-	async showEnding(endingId) {
+    revealChapter(chapterId) {
+        if (!this.states.revealedChapters.includes(chapterId)) {
+            this.states.revealedChapters.push(chapterId);
+        }
+        this.loadChapter(chapterId);
+    }
+
+    async showEnding(endingId) {
         try {
             const response = await fetch(`/endings/${endingId}.json`);
             const ending = await response.json();
@@ -252,7 +289,7 @@ class Game {
         }
     }
 
-	renderEnding(ending) {
+    renderEnding(ending) {
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.backgroundImage = `url('/backgrounds/${ending.background}')`;
         
@@ -261,6 +298,7 @@ class Game {
                 <h2>${ending.title || 'КОНЕЦ'}</h2>
                 <p>${ending.text}</p>
                 <button onclick="location.reload()">Новая игра</button>
+                <button onclick="showEndingsGallery()">Галерея концовок</button>
             </div>
         `;
         
@@ -269,50 +307,86 @@ class Game {
     }
 
     checkRequirements(requires) {
-		return Object.entries(requires || {}).every(([key, value]) => {
-			// Обработка сравнений
-			if (key.endsWith('_status')) {
-				return this.states[key] === value;
-			}
-			if (typeof value === 'string' && value.includes('+')) {
-				return this.states[key] >= parseInt(value);
-			}
+        if (!requires) return true;
+        
+        if (requires.any) {
+            return requires.any.some(condition => 
+                this.parseComplexCondition(condition)
+            );
+        }
 
-			if (key === 'revealed') {
-				return this.states.revealedChapters.includes(value);
-			}
-			if (typeof value === 'object') {
-				const operator = Object.keys(value)[0];
-				const compareValue = value[operator];
-				switch(operator) {
-					case '<': return this.states[key] < compareValue;
-					case '>': return this.states[key] > compareValue;
-					case '=': return this.states[key] === compareValue;
-				}
-			}
-			
-			// Проверка инвентаря
-			if (key === 'inventory') {
-				return Array.isArray(value) 
-					? value.every(item => this.states.inventory.includes(item))
-					: this.states.inventory.includes(value);
-			}
-			
-			// Проверка числовых значений
-			return this.states[key] >= value;
-		});
-	}
+        return Object.entries(requires).every(([key, value]) => {
+            if (key.endsWith('_status')) {
+                return this.states[key] === value;
+            }
+            
+            if (typeof value === 'string' && value.includes('+')) {
+                return this.states[key] >= parseInt(value);
+            }
+
+            if (key === 'revealed') {
+                return this.states.revealedChapters.includes(value);
+            }
+            
+            if (key === 'not_revealed') {
+                return !this.states.revealedChapters.includes(value);
+            }
+            
+            if (typeof value === 'object') {
+                const operator = Object.keys(value)[0];
+                const compareValue = value[operator];
+                switch(operator) {
+                    case '<': return this.states[key] < compareValue;
+                    case '>': return this.states[key] > compareValue;
+                    case '=': return this.states[key] === compareValue;
+                    case '<=': return this.states[key] <= compareValue;
+                    case '>=': return this.states[key] >= compareValue;
+                }
+            }
+            
+            if (key === 'inventory') {
+                return Array.isArray(value) 
+                    ? value.every(item => this.states.inventory.includes(item))
+                    : this.states.inventory.includes(value);
+            }
+            
+            if (key === 'not_inventory') {
+                return Array.isArray(value)
+                    ? value.every(item => !this.states.inventory.includes(item))
+                    : !this.states.inventory.includes(value);
+            }
+            
+            return this.states[key] >= value;
+        });
+    }
+
+    parseComplexCondition(condition) {
+        const match = condition.match(/(\w+)([<>=]+)(\d+)/);
+        if (!match) return false;
+        
+        const [_, key, op, value] = match;
+        const numValue = parseInt(value);
+        
+        switch(op) {
+            case '>=': return this.states[key] >= numValue;
+            case '<=': return this.states[key] <= numValue;
+            case '<': return this.states[key] < numValue;
+            case '>': return this.states[key] > numValue;
+            case '=': return this.states[key] === numValue;
+            default: return false;
+        }
+    }
 
     applyEffects(effects) {
         Object.entries(effects).forEach(([key, value]) => {
-			if (key === 'fate') {
-				this.states.fate = Math.min(10, this.states.fate + value);
-			}
-			if (key === 'sanity') {
-				this.states.sanity = Math.max(0, this.states.sanity + value);
-			}
-            if (key === 'inventory') {
+            if (key === 'fate') {
+                this.states.fate = Math.min(10, Math.max(0, this.states.fate + value));
+            } else if (key === 'sanity') {
+                this.states.sanity = Math.min(10, Math.max(0, this.states.sanity + value));
+            } else if (key === 'inventory_add') {
                 this.states.inventory.push(...[].concat(value));
+            } else if (key === 'inventory_remove') {
+                this.states.inventory = this.states.inventory.filter(item => ![].concat(value).includes(item));
             } else if (this.states.hasOwnProperty(key)) {
                 this.states[key] = Math.max(0, this.states[key] + value);
             }
@@ -328,7 +402,10 @@ class Game {
             magicValue: document.getElementById('magic-value'),
             inventoryCount: document.getElementById('inventory-count'),
             liraTrust: document.getElementById('lira-trust'),
-            moralValue: document.getElementById('moral-value')
+            moralValue: document.getElementById('moral-value'),
+            goldValue: document.getElementById('gold-value'),
+            sanityValue: document.getElementById('sanity-value'),
+            fateValue: document.getElementById('fate-value')
         };
 
         elements.healthBar.style.width = `${this.states.health}%`;
@@ -338,6 +415,9 @@ class Game {
         elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
         elements.liraTrust.textContent = this.states.lira_trust;
         elements.moralValue.textContent = this.states.moral;
+        elements.goldValue.textContent = this.states.gold;
+        elements.sanityValue.textContent = this.states.sanity;
+        elements.fateValue.textContent = this.states.fate;
     }
 
     showError(message) {
@@ -361,11 +441,29 @@ function initGame() {
     game.states = {
         magic: 0,
         lira_trust: 0,
+        kyle_trust: 0,
+        elina_trust: 0,
+        moral: 50,
+        gold: 10,
         health: 100,
         currentChapter: 'chapter1',
         inventory: [],
-        endings_unlocked: []
+        endings_unlocked: [],
+        willpower: 5,
+        persuasion: 0,
+        intimidation: 0,
+        revealedChapters: [],
+        fate: 0,
+        sanity: 10,
+        church_hostility: 0,
+        combat_skill: 0,
+        insight: 0
     };
     
     game.loadChapter('chapter1');
+}
+
+function showEndingsGallery() {
+    // Реализация галереи концовок
+    console.log("Показать галерею концовок");
 }

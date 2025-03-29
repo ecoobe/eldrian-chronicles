@@ -1,72 +1,85 @@
 {
     "id": "chapter1",
-    "background": "village_apocalypse.webp",
-    "text": "Адский рассвет. Небо цвета запёкшейся крови. Выберите три действия из доступных:\n\n1. Спасти соседского мальчика из-под горящей телеги\n2. Изучить странные символы на церковной стене\n3. Перевязать раненую женщину у колодца\n4. Обыскать тело инквизитора\n5. Следовать за чёрным котом в лес\n6. Проверить тайник под кузницей\n7. Заговорить с сумасшедшим стариком",
+    "background": "village_doomsday.webp",
+    "text": "Адское пламя пожирает Ветролом. Воздух наполнен криками и звоном мечей. Каждый выбор определяет вашу судьбу:\n\n[Звук ломающихся балок]\n[Запах горящей плоти]\n[Отблески клейм на доспехах]",
+    "ambience": "fire_screams.ogg",
     "choices": [
         {
-            "text": "Спасти ребёнка [Сила 3+]",
-            "next": "chapter1_child_rescue",
-            "requires": {"strength": 3},
+            "text": "▸ Броситься к горящей конюшне [Сила 4+]",
+            "next": "chapter1_horse_rescue",
+            "requires": {"strength": 4},
             "effects": {
-                "health": -40,
-                "moral": 15,
-                "inventory": ["childs_amulet"]
-            }
+                "health": -35,
+                "inventory": ["war_horse"],
+                "moral": 20,
+                "church_hostility": 2
+            },
+            "hidden": false
         },
         {
-            "text": "Исследовать символы [Магия 2+]",
-            "next": "chapter1_occult_investigation",
-            "requires": {"magic": 2},
+            "text": "▸ Исследовать алтарь в подполье [Магия 3/Реликвия]",
+            "next": "chapter1_occult_altar",
+            "requires": {"any": ["magic>=3", "inventory:old_relic"]},
             "effects": {
-                "magic": 1,
-                "church_hostility": 1
-            }
+                "sanity": -2,
+                "fate": 1,
+                "inventory": ["cursed_icon"]
+            },
+            "secret": true
         },
         {
-            "text": "Помочь женщине [Медицина 1+]",
-            "next": "chapter1_healing",
-            "requires": {"healing": 1},
+            "text": "▸ Переговоры с капитаном инквизиции [Харизма 5+]",
+            "next": "chapter1_negotiation",
+            "requires": {"persuasion": 5},
             "effects": {
-                "healing": 2,
-                "inventory": ["herbal_pouch"]
-            }
-        },
-        {
-            "text": "Обыскать тело [Скрытность 4+]",
-            "next": "chapter1_loot_corpse",
-            "requires": {"stealth": 4},
-            "effects": {
-                "inventory": ["inquisitor_seal"],
+                "church_hostility": -1,
+                "inventory": ["safe_pass"],
                 "moral": -10
+            },
+            "timer": 15
+        },
+        {
+            "text": "▸ Ритуальное самоожертвование [Тень Прошлого]",
+            "next": "chapter1_dark_pact",
+            "requires": {"curse_level": 2},
+            "effects": {
+                "health": 999,
+                "sanity": -5,
+                "fate": -3,
+                "inventory": ["void_heart"]
             },
             "hidden": true
         },
         {
-            "text": "Следовать за котом [Ловкость 5+]",
-            "next": "chapter1_black_cat",
-            "requires": {"agility": 5},
+            "text": "▸ Поиск архива деревенского мудреца [Знание 4+]",
+            "next": "chapter1_archive",
+            "requires": {"intelligence": 4},
             "effects": {
-                "fate": 1,
-                "inventory": ["mysterious_feather"]
-            }
+                "inventory": ["elders_scroll"],
+                "insight": 3
+            },
+            "puzzle": "fire_pattern"
         },
         {
-            "text": "Проверить тайник [Знание локации]",
-            "next": "chapter1_secret_cache",
-            "requires": {"inventory": ["old_map"]},
-            "hidden": true,
+            "text": "▸ Преследование теневого арбалетчика [Скрытность 6+]",
+            "next": "chapter1_arbalest_hunt",
+            "requires": {"stealth": 6},
             "effects": {
-                "inventory": ["ancient_relic"]
-            }
+                "inventory": ["church_blueprints"],
+                "moral": -5
+            },
+            "qte": "arrow_dodge"
         },
         {
-            "text": "Поговорить с стариком [Выносливость 2+]",
-            "next": "chapter1_mad_prophet",
-            "requires": {"stamina": 2},
+            "text": "▸ Призыв лесных духов [Древний Амулет]",
+            "next": "chapter1_spirit_alliance",
+            "requires": {"inventory": "ancient_amulet"},
             "effects": {
-                "insight": 3,
-                "sanity": -1
-            }
+                "magic": 4,
+                "forest_allies": 1,
+                "church_hostility": 3
+            },
+            "animation": "ritual"
         }
     ]
 }
