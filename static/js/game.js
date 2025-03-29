@@ -17,6 +17,11 @@ class Game {
     }
 
 	async loadChapter(chapterId) {
+        if (!chapterId) { // Добавлена проверка на пустой ID
+			this.showError("Глава не указана");
+			return;
+		}
+
         if (this.isLoading) return;
         
         this.isLoading = true;
