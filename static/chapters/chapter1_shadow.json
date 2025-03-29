@@ -1,0 +1,18 @@
+{
+    "id": "chapter1_shadow",
+    "background": "burning_village_night.webp",
+    "text": "Вы догоняете фигуру в плаще. Под капюшоном - лицо вашего соседа! \"Прости, они забрали мою семью...\" - шепчет он, направляя на вас кинжал.",
+    "choices": [
+        {
+            "text": "Атаковать первым",
+            "next": "chapter2_blood",
+            "effects": {"stealth": -1, "moral": -15}
+        },
+        {
+            "text": "Использовать Тень Прошлого",
+            "next": "chapter2_revelation",
+            "requires": {"magic": 2},
+            "effects": {"magic": -1}
+        }
+    ]
+}

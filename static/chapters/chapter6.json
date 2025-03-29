@@ -1,26 +1,25 @@
 {
-	"id": "chapter6",
-	"background": "altar.webp",
-	"text": "Вальтар предлагает объединить силы. Руна Молчания пульсирует в ваших руках...",
-	"choices": [
-	  {
-		"text": "Принять силу Вальтара",
-		"next": "ending_new_weep",
-		"requires": {"moral": "<30"},
-		"effects": {"inventory": ["archbishop_seal"]}
-	  },
-	  {
-		"text": "Уничтожить алтарь",
-		"next": "ending_sacrifice",
-		"requires": {
-		  "all": [
-			{"inventory": ["rune_of_silence"]},
-			{"any": [
-			  {"lira_trust": ">=7"},
-			  {"kyle_trust": ">=7"}
-			]}
-		  ]
-		}
-	  }
-	]
-  }
+    "id": "chapter6",
+    "background": "altar.webp",
+    "text": "Вальтар простирает руки, и тёмная энергия окутывает алтарь...\n\n\"Стань моим наследником, и мы перекроим реальность!\"",
+    "choices": [
+        {
+            "text": "Принять силу",
+            "next": "ending_new_weep",
+            "effects": {"moral": -100},
+            "requires": {"moral": "<30"}
+        },
+        {
+            "text": "Уничтожить алтарь",
+            "next": "ending_sacrifice",
+            "requires": {"inventory": ["rune_of_silence"], "lira_trust": 5},
+            "effects": {"health": -50}
+        },
+        {
+            "text": "Использовать Флакон Теней",
+            "next": "ending_escape",
+            "requires": {"inventory": ["shadow_vial"], "elina_trust": 7},
+            "hidden": true
+        }
+    ]
+}

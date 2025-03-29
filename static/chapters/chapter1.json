@@ -1,18 +1,24 @@
 {
     "id": "chapter1",
     "background": "village_burning.webp",
-    "text": "Перед вами пылающая деревня Ветролом...",
+    "text": "Пламя пожирает ваш дом. Воздух наполнен криками и запахом гари. Вы замечаете:\n1. Детскую куклу в огне\n2. Странный блеск в подвале\n3. Тень с клеймом на стене",
     "choices": [
         {
-            "text": "Спасти ребёнка",
-            "next": "chapter1_rescue",
-            "requires": {"health": 20},
-            "effects": {"health": -80, "moral": 15}
+            "text": "Нырнуть в пламя за ребёнком",
+            "next": "chapter1_rescue_hard",
+            "effects": {"health": -90, "moral": 20},
+            "requires": {"health": ">50"}
         },
         {
-            "text": "Спрятаться в подвале",
-            "next": "chapter1_basement",
-            "effects": {"inventory": ["rune_of_silence"]}
+            "text": "Исследовать подвал",
+            "next": "chapter1_basement_secret",
+            "effects": {"perception": 2}
+        },
+        {
+            "text": "Преследовать тень",
+            "next": "chapter1_shadow",
+            "requires": {"magic": 1},
+            "hidden": true
         }
     ]
 }

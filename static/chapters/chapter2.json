@@ -1,23 +1,44 @@
 {
     "id": "chapter2",
-    "background": "forest.webp",
-    "text": "Вы пробираетесь через Лес Забвения...",
-    "choices": [
+    "variants": [
         {
-            "text": "Исследовать руины храма",
-            "next": "chapter2_lira",
-            "requires": {"perception": 2}
+            "trigger": {"inventory": ["rune_of_silence"]},
+            "background": "ancient_forest.webp",
+            "text": "Руна пульсирует в такт вашему сердцу. Деревья шепчут:\n\"Беги...\", \"Отомсти...\", \"Сожги...\"",
+            "choices": [
+                {
+                    "text": "Прислушаться к голосам",
+                    "next": "chapter2_voices",
+                    "effects": {"magic": 3, "moral": -10}
+                },
+                {
+                    "text": "Закопать руну",
+                    "next": "chapter2_purge",
+                    "effects": {"moral": 15}
+                }
+            ]
         },
         {
-            "text": "Купить флакон у Элины",
-            "next": "chapter2_elina",
-            "effects": {"inventory": ["shadow_vial"], "moral": -5}
-        },
-        {
-            "text": "Украсть артефакт",
-            "next": "chapter2_steal",
-            "requires": {"stealth": 3},
-            "effects": {"inventory": ["shadow_vial"], "moral": -10}
+            "trigger": {"default": true},
+            "background": "forest_crossroads.webp",
+            "text": "На перекрёстке стоят три камня:\n1. Грубый менгир с рунами\n2. Чёрный обелиск\n3. Разбитая статуя",
+            "choices": [
+                {
+                    "text": "Исследовать менгир",
+                    "next": "chapter2_lira",
+                    "requires": {"perception": 3}
+                },
+                {
+                    "text": "Прикоснуться к обелиску",
+                    "next": "chapter2_corruption",
+                    "effects": {"health": -30, "magic": 5}
+                },
+                {
+                    "text": "Собрать осколки статуи",
+                    "next": "chapter2_secret",
+                    "hidden": true
+                }
+            ]
         }
     ]
 }

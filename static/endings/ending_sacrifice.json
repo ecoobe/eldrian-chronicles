@@ -1,9 +1,10 @@
 {
     "id": "ending_sacrifice",
     "background": "altar_destroyed.webp",
-    "text": "Руна Молчания взрывается ярким светом...\n\nКОНЦОВКА: Жертва\nМир лишён магии, но цена оказалась слишком высокой...",
-    "music": "sad_ending.ogg",
-    "effects": {
-        "endings_unlocked": ["sacrifice"]
+    "text": "Руна взрывается светом. Вы чувствуете, как магия покидает мир...\n\nЭпилог:\n- Через 5 лет: Люди научились жить без волшебства\n- Через 20 лет: Технологии заменили древние артефакты\n- Через 100 лет: О магии помнят только старики...",
+    "music": "epic_sad.ogg",
+    "conditions": {
+        "required": ["rune_of_silence", "lira_trust>=5"],
+        "forbidden": ["dark_pact"]
     }
 }

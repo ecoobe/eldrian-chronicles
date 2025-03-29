@@ -169,6 +169,13 @@ class Game {
     }
 
     showChoicesWithDelay(choices) {
+		const visibleChoices = choices.filter(choice => {
+			if (choice.hidden) {
+				return this.checkRequirements(choice.requires || {});
+			}
+			return true;
+		});
+		
         const choicesBox = document.getElementById('choices');
         choicesBox.innerHTML = '';
 
@@ -253,13 +260,29 @@ class Game {
     }
 
     checkRequirements(requires) {
-        return Object.entries(requires).every(([key, value]) => {
-            if (key === 'inventory') {
-                return this.states.inventory.length < value;
-            }
-            return this.states[key] >= value;
-        });
-    }
+		return Object.entries(requires || {}).every(([key, value]) => {
+			// Обработка сравнений
+			if (typeof value === 'object') {
+				const operator = Object.keys(value)[0];
+				const compareValue = value[operator];
+				switch(operator) {
+					case '<': return this.states[key] < compareValue;
+					case '>': return this.states[key] > compareValue;
+					case '=': return this.states[key] === compareValue;
+				}
+			}
+			
+			// Проверка инвентаря
+			if (key === 'inventory') {
+				return Array.isArray(value) 
+					? value.every(item => this.states.inventory.includes(item))
+					: this.states.inventory.includes(value);
+			}
+			
+			// Проверка числовых значений
+			return this.states[key] >= value;
+		});
+	}
 
     applyEffects(effects) {
         Object.entries(effects).forEach(([key, value]) => {
