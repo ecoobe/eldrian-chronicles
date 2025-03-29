@@ -40,6 +40,7 @@ body {
     background-position: center;
 }
 
+/* Исправленный блок статистики */
 .stats-box {
     position: fixed;
     top: 20px;
@@ -48,9 +49,10 @@ body {
     padding: 15px;
     border-radius: 8px;
     border: 1px solid var(--accent-copper);
-    z-index: 9999;
+    z-index: 1000; /* Увеличено для приоритета */
     min-width: 240px;
     backdrop-filter: blur(3px);
+    display: block !important; /* Принудительное отображение */
 }
 
 .stat-item {
@@ -58,6 +60,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 14px;
 }
 
 .progress-bar {
@@ -66,6 +69,7 @@ body {
     background: var(--secondary-dark);
     border-radius: 6px;
     overflow: hidden;
+    margin-left: auto;
 }
 
 .progress-fill {
@@ -85,7 +89,7 @@ body {
     padding: 20px;
     border: 2px solid var(--accent-blue);
     border-radius: 12px;
-    z-index: 1000;
+    z-index: 999;
     backdrop-filter: blur(5px);
 }
 
@@ -100,6 +104,10 @@ body {
     flex-direction: column;
     gap: 12px;
     z-index: 1000;
+}
+
+.hidden {
+    display: none !important;
 }
 
 .choice-btn {
@@ -149,3 +157,17 @@ body {
 #game-container::after {
     display: none;
 }
+
+.stat-item span::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+#health-value::before { background-image: url('/icons/heart.svg'); }
+#magic-value::before { background-image: url('/icons/magic.svg'); }
+#inventory-count::before { background-image: url('/icons/backpack.svg'); }
+#moral-value::before { background-image: url('/icons/scales.svg'); }

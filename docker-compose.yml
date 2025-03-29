@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   nginx:
     image: nginx:1.23-alpine
@@ -5,43 +7,11 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./static:/usr/share/nginx/html
-      - ./config/nginx:/etc/nginx/conf.d
-      - /etc/letsencrypt:/etc/letsencrypt
+      - ./static:/usr/share/nginx/html:ro
+      - ./config/nginx:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - game_net
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    networks:
-      - game_net
-    privileged: true
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./config/prometheus:/etc/prometheus
-    networks:
-      - game_net
-
-  grafana:
-    image: grafana/grafana-enterprise:latest
-    volumes:
-      - grafana_data:/var/lib/grafana
-    networks:
-      - game_net
-    ports:
-      - "3000:3000"
-
-volumes:
-  grafana_data:
 
 networks:
   game_net:

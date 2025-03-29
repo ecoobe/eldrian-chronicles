@@ -126,6 +126,14 @@ class Game {
             moralValue: document.getElementById('moral-value')
         };
 
+		elements.healthBar.style.width = `${this.states.health}%`;
+        elements.healthValue.textContent = this.states.health;
+        elements.magicBar.style.width = `${this.states.magic}%`;
+        elements.magicValue.textContent = this.states.magic;
+        elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
+        elements.liraTrust.textContent = this.states.lira_trust;
+        elements.moralValue.textContent = this.states.moral;
+
         // Проверка элементов
         Object.entries(elements).forEach(([name, element]) => {
             if (!element) console.error(`Элемент ${name} не найден!`);
@@ -146,24 +154,25 @@ class Game {
     }
 }
 
-const game = new Game(); // Перемещено перед использованием
-
-document.getElementById('start-game-btn').addEventListener('click', () => {
-    initGame();
-});
-
-let isGameInitialized = false;
+const game = new Game();
 
 function initGame() {
-    if (isGameInitialized) {
-        console.log('Игра уже запущена');
-        return;
-    }
+    // Сбрасываем состояние
+    game.states = {
+        magic: 0,
+        lira_trust: 0,
+        health: 100,
+        currentChapter: 'chapter1',
+        inventory: []
+    };
     
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('game-container').classList.remove('hidden');
-    document.getElementById('start-game-btn').disabled = true;
+    // Переключаем видимость через стили
+    document.getElementById('main-menu').style.display = 'none';
+    const gameContainer = document.getElementById('game-container');
+    gameContainer.classList.remove('hidden');
+    gameContainer.style.display = 'block';
     
-    game.init();
-    isGameInitialized = true;
+    // Принудительный рендеринг
+    game.updateStatsDisplay();
+    game.loadChapter('chapter1');
 }
