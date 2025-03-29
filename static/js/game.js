@@ -135,9 +135,15 @@ class Game {
         elements.moralValue.textContent = this.states.moral;
     }
 	showError(message) {
-        const textDisplay = document.getElementById('text-display');
-        textDisplay.innerHTML = `<p class="error">ОШИБКА: ${message}</p>`;
-    }
+		const errorHTML = `
+			<div class="error-box">
+				<h2>🛑 Ошибка</h2>
+				<p>${message}</p>
+				<button onclick="location.reload()">Перезагрузить</button>
+			</div>
+		`;
+		document.body.innerHTML = errorHTML;
+	}
 
     init() {
         this.loadChapter(this.states.currentChapter);
