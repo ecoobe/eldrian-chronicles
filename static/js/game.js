@@ -1,8 +1,21 @@
-document.getElementById('start-game-btn').addEventListener('click', () => {
+document.getElementById('start-game-btn').addEventListener('click', initGame);
+
+let isGameInitialized = false;
+const game = new Game();
+
+function initGame() {
+    if (isGameInitialized) {
+        console.log('Игра уже запущена');
+        return;
+    }
+    
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('game-container').classList.remove('hidden');
+    document.getElementById('start-game-btn').disabled = true;
+    
     game.init();
-});
+    isGameInitialized = true;
+}
 
 class Game {
     constructor() {
@@ -17,36 +30,53 @@ class Game {
             currentChapter: 'chapter1',
             inventory: []
         };
+        this.isLoading = false;
     }
 
     async loadChapter(chapterId) {
+        if (this.isLoading || this.states.currentChapter === chapterId) {
+            console.log('Загрузка уже выполняется');
+            return;
+        }
+        
+        this.isLoading = true;
         try {
             console.log(`[DEBUG] Loading chapter: ${chapterId}`);
             const response = await fetch(`/chapters/${chapterId}.json?t=${Date.now()}`);
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+            
             const chapter = await response.json();
+            this.states.currentChapter = chapterId;
             this.renderChapter(chapter);
+            
         } catch (error) {
             console.error('Error:', error);
             document.getElementById('text-display').innerHTML = 
-                `<p style="color: red">Ошибка загрузки: ${error.message}</p>`;
+                `<p style="color:red">Ошибка: ${error.message}</p>`;
+        } finally {
+            this.isLoading = false;
         }
     }
 
     renderChapter(chapter) {
-        console.log('[DEBUG] Rendering chapter:', chapter);
+        const textDisplay = document.getElementById('text-display');
+        const choicesBox = document.getElementById('choices');
         
+        if (!textDisplay || !choicesBox) {
+            console.error('Критические элементы DOM не найдены');
+            return;
+        }
+
         // Обновление фона
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.backgroundImage = `url('/backgrounds/${chapter.background}')`;
-        
+
         // Обновление текста
-        document.getElementById('text-display').innerHTML = chapter.text;
-        
-        // Очистка старых кнопок
-        const choicesBox = document.getElementById('choices');
+        textDisplay.innerHTML = chapter.text;
+
+        // Очистка кнопок
         choicesBox.innerHTML = '';
-        
+
         // Создание новых кнопок
         chapter.choices.forEach(choice => {
             if (choice.hidden && !this.checkCondition(choice.condition)) return;
@@ -57,9 +87,8 @@ class Game {
             btn.disabled = !this.checkRequirements(choice.requires || {});
 
             btn.addEventListener('click', () => {
-                console.log('[DEBUG] Choice selected:', choice);
+                console.log('[DEBUG] Выбор:', choice.text);
                 this.applyEffects(choice.effects || {});
-                this.states.currentChapter = choice.next;
                 this.loadChapter(choice.next);
             });
 
@@ -104,24 +133,32 @@ class Game {
     }
 
     updateStatsDisplay() {
-        // Прогресс-бары
-        document.getElementById('health-bar').style.width = `${this.states.health}%`;
-        document.getElementById('magic-bar').style.width = `${this.states.magic}%`;
-        
-        // Текстовые значения
-        document.getElementById('health-value').textContent = this.states.health;
-        document.getElementById('magic-value').textContent = this.states.magic;
-        document.getElementById('inventory-count').textContent = 
-            `${this.states.inventory.length}/10`;
-        document.getElementById('lira-trust').textContent = this.states.lira_trust;
-        document.getElementById('moral-value').textContent = this.states.moral;
-        
-        console.log('[DEBUG] Updated stats:', this.states);
+        const elements = {
+            healthBar: document.getElementById('health-bar'),
+            healthValue: document.getElementById('health-value'),
+            magicBar: document.getElementById('magic-bar'),
+            magicValue: document.getElementById('magic-value'),
+            inventoryCount: document.getElementById('inventory-count'),
+            liraTrust: document.getElementById('lira-trust'),
+            moralValue: document.getElementById('moral-value')
+        };
+
+        // Проверка элементов
+        Object.entries(elements).forEach(([name, element]) => {
+            if (!element) console.error(`Элемент ${name} не найден!`);
+        });
+
+        // Обновление значений
+        elements.healthBar.style.width = `${this.states.health}%`;
+        elements.healthValue.textContent = this.states.health;
+        elements.magicBar.style.width = `${this.states.magic}%`;
+        elements.magicValue.textContent = this.states.magic;
+        elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
+        elements.liraTrust.textContent = this.states.lira_trust;
+        elements.moralValue.textContent = this.states.moral;
     }
 
     init() {
         this.loadChapter(this.states.currentChapter);
     }
 }
-
-const game = new Game();
