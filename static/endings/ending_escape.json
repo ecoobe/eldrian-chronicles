@@ -1,16 +1,10 @@
 {
-	"id": "ending_escape",
-	"background": "epilogue_shadow.webp",
-	"text": "Портал закрывается за вашей спиной. Элина смеётся, глядя как мир гибнет в пламени...<br><br><i>Концовка: Бегство в Тень</i>",
-	"music": "shadow.ogg",
-	"conditions": {
-	  "all": [
-		{"inventory": ["shadow_vial"]},
-		{"elina_trust": ">=5"},
-		{"any": [
-		  {"moral": "<40"},
-		  {"inventory": ["stolen_artifact"]}
-		]}
-	  ]
-	}
-  }
+    "id": "ending_escape",
+    "background": "shadow_portal.webp",
+    "text": "Элина разбивает флакон...\n\nКОНЦОВКА: Бегство в Тень\nВы наблюдаете за гибелью Элдриана из бездны...",
+    "music": "mysterious_ending.ogg",
+    "requirements": {
+        "inventory": ["shadow_vial"],
+        "elina_trust": 5
+    }
+}

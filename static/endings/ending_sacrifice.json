@@ -1,16 +1,9 @@
 {
-	"id": "ending_sacrifice",
-	"background": "epilogue_peace.webp",
-	"text": "С ритуалом исчезает магия, но Элдриан обретает покой. Вы стоите среди руин прежнего мира, зная, что спасли его ценой всего, что любили...<br><br><i>Концовка: Жертва</i>",
-	"music": "sacrifice.ogg",
-	"conditions": {
-	  "all": [
-		{"inventory": ["rune_of_silence"]},
-		{"any": [
-		  {"lira_trust": ">=7"},
-		  {"kyle_trust": ">=7"}
-		]},
-		{"moral": ">=60"}
-	  ]
-	}
-  }
+    "id": "ending_sacrifice",
+    "background": "altar_destroyed.webp",
+    "text": "Руна Молчания взрывается ярким светом...\n\nКОНЦОВКА: Жертва\nМир лишён магии, но цена оказалась слишком высокой...",
+    "music": "sad_ending.ogg",
+    "effects": {
+        "endings_unlocked": ["sacrifice"]
+    }
+}

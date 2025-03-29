@@ -1,16 +1,10 @@
 {
-	"id": "ending_new_weep",
-	"background": "epilogue_madness.webp",
-	"text": "Новый Плач поглощает реальность. Последнее, что вы видите - тысячи теней, повторяющих ваши движения...<br><br><i>Концовка: Новый Плач</i>",
-	"music": "madness.ogg",
-	"conditions": {
-	  "all": [
-		{"inventory": ["archbishop_seal"]},
-		{"moral": "<30"},
-		{"any": [
-		  {"elina_trust": ">=5"},
-		  {"inventory": ["stolen_artifact"]}
-		]}
-	  ]
-	}
-  }
+    "id": "ending_new_weep",
+    "background": "apocalypse.webp",
+    "text": "Сила Плача Небес переполняет вас...\n\nКОНЦОВКА: Новый Плач\nВы стали живым оружием уничтожения...",
+    "music": "epic_ending.ogg",
+    "variables": {
+        "moral": -100,
+        "health": 0
+    }
+}
