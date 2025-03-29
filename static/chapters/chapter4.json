@@ -1,28 +1,23 @@
 {
-	"id": "chapter4",
-	"background": "masquerade_ball.webp",
-	"text": "Бал-маскарад в поместье лорда Вальтара. Кардинал в центре зала пьёт вино из золочёного кубка...",
-	"choices": [
-	  {
-		"text": "[Скрытность] Подменить яд на снотворное",
-		"next": "chapter4_poison_swap",
-		"requires": {"inventory": ["shadow_vial"]},
-		"effects": {"moral": 15}
-	  },
-	  {
-		"text": "Отравить кардинала",
-		"next": "chapter4_poison",
-		"effects": {
-		  "moral": -20,
-		  "inventory": ["church_wanted_posters"]
-		}
-	  },
-	  {
-		"text": "Принять предложение Элины",
-		"next": "chapter4_elina_escape",
-		"hidden": true,
-		"condition": "inventory.includes('stolen_artifact')",
-		"effects": {"lira_trust": -10}
-	  }
-	]
-  }
+    "id": "chapter4",
+    "background": "masquerade_ball.webp",
+    "text": "Бал-маскарад в полном разгаре...",
+    "choices": [
+        {
+            "text": "Подменить яд",
+            "next": "chapter4_poison",
+            "requires": {"shadow_vial": true},
+            "effects": {"stealth": 1}
+        },
+        {
+            "text": "Сбежать с Элиной",
+            "next": "ending_escape",
+            "requires": {"elina_trust": 3}
+        },
+        {
+            "text": "Послушать Кайла",
+            "next": "chapter5_warning",
+            "requires": {"strength": 3}
+        }
+    ]
+}

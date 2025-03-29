@@ -1,22 +1,23 @@
 {
-	"id": "chapter2",
-	"background": "forest.webp",
-	"text": "Вы пробираетесь через Лес Забвения. Ветви деревьев шепчут предупреждения...",
-	"choices": [
-	  {
-		"text": "Искать помощь в руинах",
-		"next": "chapter2_ruins",
-		"requires": {"magic": 1},
-		"effects": {
-		  "lira_trust": 2
-		}
-	  },
-	  {
-		"text": "Следовать за странным светом",
-		"next": "chapter2_light",
-		"effects": {
-		  "inventory": ["shadow_vial"]
-		}
-	  }
-	]
-  }
+    "id": "chapter2",
+    "background": "forest.webp",
+    "text": "Вы пробираетесь через Лес Забвения...",
+    "choices": [
+        {
+            "text": "Исследовать руины храма",
+            "next": "chapter2_lira",
+            "requires": {"perception": 2}
+        },
+        {
+            "text": "Купить флакон у Элины",
+            "next": "chapter2_elina",
+            "effects": {"inventory": ["shadow_vial"], "moral": -5}
+        },
+        {
+            "text": "Украсть артефакт",
+            "next": "chapter2_steal",
+            "requires": {"stealth": 3},
+            "effects": {"inventory": ["shadow_vial"], "moral": -10}
+        }
+    ]
+}

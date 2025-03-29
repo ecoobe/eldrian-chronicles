@@ -66,18 +66,33 @@ class Game {
     }
 
     async renderChapter(chapter) {
-        this.currentChapterData = chapter;
-        const textDisplay = document.getElementById('text-display');
-        const choicesBox = document.getElementById('choices');
-        
-        textDisplay.innerHTML = '';
-        choicesBox.innerHTML = '';
-
-        await this.startBgTransition(chapter);
-        await this.typewriterEffect(chapter.text);
-        this.showChoicesWithDelay(chapter.choices || []);
-        this.updateStatsDisplay();
-    }
+		this.currentChapterData = chapter;
+		const textDisplay = document.getElementById('text-display');
+		const choicesBox = document.getElementById('choices');
+		
+		textDisplay.innerHTML = '';
+		choicesBox.innerHTML = '';
+	
+		// Выбор варианта главы
+		let variant = chapter.variants?.find(v => this.checkVariantConditions(v)) || chapter;
+		
+		await this.startBgTransition(variant);
+		await this.typewriterEffect(variant.text);
+		this.showChoicesWithDelay(variant.choices || []);
+		this.updateStatsDisplay();
+	}
+	
+	checkVariantConditions(variant) {
+		if (!variant.trigger) return true;
+		if (variant.trigger.default) return true;
+		
+		return Object.entries(variant.trigger).every(([key, value]) => {
+			if (key === 'inventory') {
+				return value.every(item => this.states.inventory.includes(item));
+			}
+			return this.states[key] >= value;
+		});
+	}
 
     async startBgTransition(chapter) {
         return new Promise((resolve) => {

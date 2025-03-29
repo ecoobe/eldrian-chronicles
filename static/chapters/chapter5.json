@@ -1,24 +1,32 @@
 {
-	"id": "chapter5",
-	"background": "inquisition_archive.webp",
-	"text": "Странник приказывает убить Лиру. Её дневник лежит на столе с пометкой 'Плач Небес'...",
-	"choices": [
-	  {
-		"text": "Убить Лиру",
-		"next": "chapter5_lira_dead",
-		"effects": {
-		  "moral": -30,
-		  "inventory": ["lira_journal"]
-		}
-	  },
-	  {
-		"text": "Защитить Лиру",
-		"next": "chapter5_confrontation",
-		"requires": {"lira_trust": 5},
-		"effects": {
-		  "health": -40,
-		  "inventory": ["stranger_mask"]
-		}
-	  }
-	]
-  }
+    "id": "chapter5",
+    "variants": [
+        {
+            "trigger": {"lira_trust": 3},
+            "background": "temple_ruins.webp",
+            "text": "Лира, дрожащими руками, показывает вам дневник...",
+            "choices": [
+                {
+                    "text": "Объединить силы",
+                    "next": "ending_sacrifice",
+                    "requires": {"rune_of_silence": true}
+                },
+                {
+                    "text": "Действовать в одиночку",
+                    "next": "ending_betrayal"
+                }
+            ]
+        },
+        {
+            "trigger": {"default": true},
+            "background": "abandoned_camp.webp",
+            "text": "Страницы дневника обуглены, но кое-что можно разобрать...",
+            "choices": [
+                {
+                    "text": "Использовать знания Вальтара",
+                    "next": "ending_new_weep"
+                }
+            ]
+        }
+    ]
+}

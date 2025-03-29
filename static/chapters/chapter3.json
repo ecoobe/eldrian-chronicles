@@ -1,22 +1,27 @@
 {
-	"id": "chapter3",
-	"background": "temple_ruins.webp",
-	"text": "В руинах древнего храма вы встречаете Лиру. Она изучает фрески с изображением Плача Небес...",
-	"choices": [
-	  {
-		"text": "Раскрыть свою тайну",
-		"next": "chapter3_trust",
-		"requires": {"lira_trust": 3},
-		"effects": {
-		  "moral": 20
-		}
-	  },
-	  {
-		"text": "Солгать о своих способностях",
-		"next": "chapter3_lie",
-		"effects": {
-		  "lira_trust": -2
-		}
-	  }
-	]
-  }
+    "id": "chapter3",
+    "variants": [
+        {
+            "trigger": {"inventory": ["rune_of_silence"]},
+            "background": "inquisition_archive.webp",
+            "text": "Вы замечаете поддельные печати...",
+            "choices": [
+                {
+                    "text": "Обвинить Странника",
+                    "next": "chapter5_confront"
+                }
+            ]
+        },
+        {
+            "trigger": {"default": true},
+            "background": "inquisition_archive.webp",
+            "text": "Документы выглядят подлинными...",
+            "choices": [
+                {
+                    "text": "Выполнить приказ",
+                    "next": "chapter4"
+                }
+            ]
+        }
+    ]
+}
