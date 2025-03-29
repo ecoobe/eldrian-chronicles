@@ -41,34 +41,57 @@ class Game {
     }
 
     renderChapter(chapter) {
-        console.log('[DEBUG] Chapter background:', chapter.background); // Добавить эту строку
-        const gameContainer = document.getElementById('game-container');
+		const textDisplay = document.getElementById('text-display');
+		const choicesBox = document.getElementById('choices');
+		const gameContainer = document.getElementById('game-container');
+	
+		// 1. Загрузка фона с обработкой ошибок
+		const bgImage = new Image();
+		bgImage.src = `/backgrounds/${chapter.background}`;
+		
+		bgImage.onload = () => {
+			console.log('Фон успешно загружен:', bgImage.src);
+			gameContainer.style.backgroundImage = `url('${bgImage.src}')`;
+		};
+		
+		bgImage.onerror = () => {
+			console.error('Ошибка загрузки фона! Проверьте:', {
+				"Ожидаемый путь": `/backgrounds/${chapter.background}`,
+				"Фактический путь": bgImage.src,
+				"Существует ли файл?": "Проверьте через https://coobe.ru/backgrounds/" + chapter.background
+			});
+			gameContainer.style.backgroundImage = 'url("/backgrounds/main_menu.webp")'; // Фолбэк
+		};
+	
+		// 2. Обновление текста и кнопок
+		textDisplay.innerHTML = chapter.text || "[Текст главы отсутствует]";
+		choicesBox.innerHTML = '';
+	
+		// 3. Создание кнопок выбора
+		chapter.choices?.forEach(choice => {
+			const btn = document.createElement('button');
+			btn.className = 'choice-btn';
+			btn.textContent = choice.text;
+			btn.onclick = () => this.handleChoice(choice);
+			choicesBox.appendChild(btn);
+		});
+	
+		this.updateStatsDisplay();
+	}
 
-        const textDisplay = document.getElementById('text-display');
-        const choicesBox = document.getElementById('choices');
-        
-        // Очистка предыдущего контента
-        textDisplay.innerHTML = chapter.text || "[Текст главы отсутствует]";
-        choicesBox.innerHTML = '';
-
-        // Добавление кнопок выбора
-        chapter.choices?.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.textContent = choice.text;
-            
-            // Обработчик выбора
-            btn.addEventListener('click', () => {
-                this.applyEffects(choice.effects || {});
-                this.loadChapter(choice.next);
-            });
-
-            choicesBox.appendChild(btn);
-        });
-
-        // Принудительное обновление интерфейса
-        this.updateStatsDisplay();
-    }
+	handleChoice(choice) {
+		if (!choice.next) {
+			this.showError('Некорректная глава: next не указан');
+			return;
+		}
+		
+		try {
+			this.applyEffects(choice.effects || {});
+			this.loadChapter(choice.next);
+		} catch (error) {
+			this.showError(`Ошибка выбора: ${error.message}`);
+		}
+	}
 
     checkRequirements(requires) {
         if (!requires) return true;
