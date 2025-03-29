@@ -1,0 +1,24 @@
+{
+	"id": "chapter5",
+	"background": "inquisition_archive.webp",
+	"text": "Странник приказывает убить Лиру. Её дневник лежит на столе с пометкой 'Плач Небес'...",
+	"choices": [
+	  {
+		"text": "Убить Лиру",
+		"next": "chapter5_lira_dead",
+		"effects": {
+		  "moral": -30,
+		  "inventory": ["lira_journal"]
+		}
+	  },
+	  {
+		"text": "Защитить Лиру",
+		"next": "chapter5_confrontation",
+		"requires": {"lira_trust": 5},
+		"effects": {
+		  "health": -40,
+		  "inventory": ["stranger_mask"]
+		}
+	  }
+	]
+  }

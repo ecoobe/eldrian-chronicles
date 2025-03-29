@@ -1,0 +1,26 @@
+{
+	"id": "chapter6",
+	"background": "altar.webp",
+	"text": "Вальтар предлагает объединить силы. Руна Молчания пульсирует в ваших руках...",
+	"choices": [
+	  {
+		"text": "Принять силу Вальтара",
+		"next": "ending_new_weep",
+		"requires": {"moral": "<30"},
+		"effects": {"inventory": ["archbishop_seal"]}
+	  },
+	  {
+		"text": "Уничтожить алтарь",
+		"next": "ending_sacrifice",
+		"requires": {
+		  "all": [
+			{"inventory": ["rune_of_silence"]},
+			{"any": [
+			  {"lira_trust": ">=7"},
+			  {"kyle_trust": ">=7"}
+			]}
+		  ]
+		}
+	  }
+	]
+  }

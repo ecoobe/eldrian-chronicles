@@ -9,6 +9,10 @@ class Game {
         this.states = {
             magic: 0,
             lira_trust: 0,
+            kyle_trust: 0,
+            elina_trust: 0,
+            moral: 50,
+            endings_unlocked: [],
             health: 100,
             currentChapter: 'chapter1',
             inventory: [],
@@ -79,17 +83,46 @@ class Game {
     }
 
     checkCondition(condition) {
-        if (!condition) return true;
-        
-        // Inventory check
-        if (condition.startsWith('inventory.includes')) {
-            const item = condition.match(/'([^']+)'/)[1];
-            return this.states.inventory.includes(item);
-        }
-        
-        // State check
-        return this.states[condition] !== undefined ? this.states[condition] : false;
-    }
+		// Новая логика для сложных условий
+		if (condition.includes("&&")) {
+		  return condition.split("&&").every(c => this.checkSingleCondition(c.trim()));
+		}
+		if (condition.includes("||")) {
+		  return condition.split("||").some(c => this.checkSingleCondition(c.trim()));
+		}
+		return this.checkSingleCondition(condition);
+	}
+
+	checkCondition(condition) {
+		const evaluate = (cond) => {
+		  if (cond.all) return cond.all.every(evaluate);
+		  if (cond.any) return cond.any.some(evaluate);
+		  
+		  const [key] = Object.keys(cond);
+		  const value = cond[key];
+		  
+		  // Проверка инвентаря
+		  if (key === 'inventory') {
+			return Array.isArray(value) 
+			  ? value.every(item => this.states.inventory.includes(item))
+			  : this.states.inventory.includes(value);
+		  }
+		  
+		  // Проверка отношений
+		  if (key.endsWith('_trust') || key === 'moral') {
+			const match = value.match(/^([<>]=?|==?)\s*(-?\d+)$/);
+			if (match) {
+			  const [, operator, num] = match;
+			  return this.compareValues(this.states[key], operator, parseInt(num));
+			}
+			return this.states[key] >= parseInt(value);
+		  }
+		  
+		  return false;
+		};
+		
+		return evaluate(condition);
+	}
 
     applyEffects(effects) {
         Object.entries(effects).forEach(([key, value]) => {
@@ -117,6 +150,17 @@ class Game {
     init() {
         this.loadChapter(this.states.currentChapter);
     }
+
+	compareValues(a, operator, b) {
+		switch(operator) {
+		  case '>': return a > b;
+		  case '<': return a < b;
+		  case '>=': return a >= b;
+		  case '<=': return a <= b;
+		  case '==': return a === b;
+		  default: return false;
+		}
+	}
 }
 
 const game = new Game();

@@ -1,0 +1,28 @@
+{
+	"id": "chapter4",
+	"background": "masquerade_ball.webp",
+	"text": "Бал-маскарад в поместье лорда Вальтара. Кардинал в центре зала пьёт вино из золочёного кубка...",
+	"choices": [
+	  {
+		"text": "[Скрытность] Подменить яд на снотворное",
+		"next": "chapter4_poison_swap",
+		"requires": {"inventory": ["shadow_vial"]},
+		"effects": {"moral": 15}
+	  },
+	  {
+		"text": "Отравить кардинала",
+		"next": "chapter4_poison",
+		"effects": {
+		  "moral": -20,
+		  "inventory": ["church_wanted_posters"]
+		}
+	  },
+	  {
+		"text": "Принять предложение Элины",
+		"next": "chapter4_elina_escape",
+		"hidden": true,
+		"condition": "inventory.includes('stolen_artifact')",
+		"effects": {"lira_trust": -10}
+	  }
+	]
+  }

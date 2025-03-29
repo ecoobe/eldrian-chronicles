@@ -1,24 +1,22 @@
 {
-    "id": "chapter2",
-    "background": "village_burning.webp",
-    "text": "В руинах вы находите древний артефакт. Лира смотрит на вас с подозрением.",
-    "characters": [
-        {
-            "name": "Лира",
-            "sprite": "lira_neutral.webp",
-            "position": "left"
-        }
-    ],
-    "choices": [
-        {
-            "text": "Взять артефакт",
-            "next": "chapter3",
-            "effects": {"magic": 3}
-        },
-        {
-            "text": "Оставить артефакт",
-            "next": "chapter1",
-            "effects": {"lira_trust": 1}
-        }
-    ]
-}
+	"id": "chapter2",
+	"background": "forest.webp",
+	"text": "Вы пробираетесь через Лес Забвения. Ветви деревьев шепчут предупреждения...",
+	"choices": [
+	  {
+		"text": "Искать помощь в руинах",
+		"next": "chapter2_ruins",
+		"requires": {"magic": 1},
+		"effects": {
+		  "lira_trust": 2
+		}
+	  },
+	  {
+		"text": "Следовать за странным светом",
+		"next": "chapter2_light",
+		"effects": {
+		  "inventory": ["shadow_vial"]
+		}
+	  }
+	]
+  }

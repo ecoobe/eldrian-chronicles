@@ -1,0 +1,13 @@
+{
+	"id": "ending_betrayal",
+	"background": "epilogue_betrayal.webp",
+	"text": "Лира стреляет вам в спину. Последнее, что вы слышите - 'Прости...'<br><br><i>Концовка: Нож в спине</i>",
+	"music": "betrayal.ogg",
+	"conditions": {
+	  "all": [
+		{"lira_trust": "<3"},
+		{"kyle_trust": "<3"},
+		{"moral": ">=70"}
+	  ]
+	}
+  }

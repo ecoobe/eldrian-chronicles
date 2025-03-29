@@ -1,0 +1,19 @@
+{
+	"ending_sacrifice": {
+	  "background": "epilogue_peace.webp",
+	  "text": "С ритуалом исчезает магия, но Элдриан обретает покой...",
+	  "condition": "inventory.includes('rune_of_silence') && moral > 60"
+	},
+	
+	"ending_new_weep": {
+	  "background": "epilogue_madness.webp",
+	  "text": "Новый Плач стирает память о ваших поступках. Мир погружается в хаос...",
+	  "condition": "inventory.includes('archbishop_seal')"
+	},
+	
+	"ending_escape": {
+	  "background": "epilogue_shadow.webp",
+	  "text": "Вы с Элиной исчезаете в Тени, наблюдая как гибнет ваш мир...",
+	  "condition": "inventory.includes('shadow_vial') && elina_trust > 5"
+	}
+  }

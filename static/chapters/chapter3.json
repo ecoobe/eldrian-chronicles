@@ -1,0 +1,22 @@
+{
+	"id": "chapter3",
+	"background": "temple_ruins.webp",
+	"text": "В руинах древнего храма вы встречаете Лиру. Она изучает фрески с изображением Плача Небес...",
+	"choices": [
+	  {
+		"text": "Раскрыть свою тайну",
+		"next": "chapter3_trust",
+		"requires": {"lira_trust": 3},
+		"effects": {
+		  "moral": 20
+		}
+	  },
+	  {
+		"text": "Солгать о своих способностях",
+		"next": "chapter3_lie",
+		"effects": {
+		  "lira_trust": -2
+		}
+	  }
+	]
+  }
