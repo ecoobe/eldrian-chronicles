@@ -1,0 +1,18 @@
+{
+    "id": "chapter2_elina",
+    "background": "forest_path.webp",
+    "text": "Элина, прищурившись, протягивает вам флакон с чёрной жидкостью...",
+    "choices": [
+        {
+            "text": "Купить за 10 золотых",
+            "next": "chapter3",
+            "requires": {"gold": 10},
+            "effects": {"inventory": ["shadow_vial"], "gold": -10}
+        },
+        {
+            "text": "Уйти",
+            "next": "chapter2_return",
+            "effects": {"elina_trust": -1}
+        }
+    ]
+}

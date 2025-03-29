@@ -1,0 +1,17 @@
+{
+    "id": "chapter4_poison",
+    "background": "palace_kitchen.webp",
+    "text": "Вам удаётся подменить яд на снотворное...",
+    "choices": [
+        {
+            "text": "Предупредить кардинала",
+            "next": "ending_sacrifice",
+            "requires": {"moral": 40}
+        },
+        {
+            "text": "Дождаться последствий",
+            "next": "chapter5",
+            "effects": {"stealth": 2}
+        }
+    ]
+}

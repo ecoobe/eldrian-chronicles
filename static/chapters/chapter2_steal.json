@@ -1,0 +1,21 @@
+{
+    "id": "chapter2_steal",
+    "background": "forest_night.webp",
+    "text": "Вы крадёте флакон, пока Элина отвлеклась...",
+    "choices": [
+        {
+            "text": "Скрыться в лесу",
+            "next": "chapter3",
+            "effects": {
+                "inventory": ["shadow_vial"],
+                "stealth": 1,
+                "moral": -15
+            }
+        },
+        {
+            "text": "Признаться",
+            "next": "chapter2_elina",
+            "effects": {"moral": 5}
+        }
+    ]
+}

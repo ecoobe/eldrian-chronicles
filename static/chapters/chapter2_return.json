@@ -1,0 +1,16 @@
+{
+    "id": "chapter2_return",
+    "background": "forest.webp",
+    "text": "Элина кричит вам вдогонку: 'Передумаешь - возвращайся!'",
+    "choices": [
+        {
+            "text": "Вернуться к Лире",
+            "next": "chapter2_lira",
+            "effects": {"perception": 1}
+        },
+        {
+            "text": "Идти дальше",
+            "next": "chapter3"
+        }
+    ]
+}

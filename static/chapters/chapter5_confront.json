@@ -1,0 +1,17 @@
+{
+    "id": "chapter5_confront",
+    "background": "secret_chamber.webp",
+    "text": "Странник срывает маску, открывая лицо архиепископа...",
+    "choices": [
+        {
+            "text": "Атаковать",
+            "next": "ending_betrayal",
+            "requires": {"strength": 4}
+        },
+        {
+            "text": "Притвориться союзником",
+            "next": "chapter6",
+            "effects": {"stealth": 2}
+        }
+    ]
+}
