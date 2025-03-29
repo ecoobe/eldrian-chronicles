@@ -9,10 +9,11 @@ class Game {
             kyle_trust: 0,
             elina_trust: 0,
             moral: 50,
-            endings_unlocked: [],
+            gold: 10,
             health: 100,
             currentChapter: 'chapter1',
-            inventory: []
+            inventory: [],
+            endings_unlocked: []
         };
         this.isLoading = false;
         this.currentChapterData = null;
@@ -24,7 +25,9 @@ class Game {
             'village_burning.webp',
             'burning_house.webp',
             'forest.webp',
-            'main_menu.webp'
+            'main_menu.webp',
+            'altar.webp',
+            'shadow_portal.webp'
         ];
         backgrounds.forEach(bg => {
             new Image().src = `/backgrounds/${bg}`;
@@ -41,69 +44,73 @@ class Game {
         this.isLoading = true;
 
         try {
-            console.log(`[DEBUG] Загрузка главы: ${chapterId}`);
-            const response = await fetch(`/chapters/${chapterId}.json?t=${Date.now()}`);
-            
-            if (!response.ok) {
-                throw new Error(`Ошибка HTTP: ${response.status} ${response.statusText}`);
+            let path;
+            if (chapterId.startsWith('ending_')) {
+                path = `/endings/${chapterId}.json`;
+            } else {
+                path = `/chapters/${chapterId}.json`;
             }
 
-            const chapter = await response.json();
+            console.log(`[DEBUG] Загрузка: ${path}`);
+            const response = await fetch(`${path}?t=${Date.now()}`);
             
-            if (!chapter?.id) {
-                throw new Error("Некорректный формат файла главы");
-            }
+            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+            const data = await response.json();
 
             this.states.currentChapter = chapterId;
-            await this.renderChapter(chapter);
+            await this.renderChapter(data);
 
         } catch (error) {
             console.error("Ошибка загрузки:", error);
-            this.showError(`Ошибка в главе ${chapterId}: ${error.message}`);
+            this.showError(`Ошибка в ${chapterId}: ${error.message}`);
         } finally {
             this.isLoading = false;
         }
     }
 
-    async renderChapter(chapter) {
-		this.currentChapterData = chapter;
-		const textDisplay = document.getElementById('text-display');
-		const choicesBox = document.getElementById('choices');
-		
-		textDisplay.innerHTML = '';
-		choicesBox.innerHTML = '';
-	
-		// Выбор варианта главы
-		let variant = chapter.variants?.find(v => this.checkVariantConditions(v)) || chapter;
-		
-		await this.startBgTransition(variant);
-		await this.typewriterEffect(variant.text);
-		this.showChoicesWithDelay(variant.choices || []);
-		this.updateStatsDisplay();
-	}
-	
-	checkVariantConditions(variant) {
-		if (!variant.trigger) return true;
-		if (variant.trigger.default) return true;
-		
-		return Object.entries(variant.trigger).every(([key, value]) => {
-			if (key === 'inventory') {
-				return value.every(item => this.states.inventory.includes(item));
-			}
-			return this.states[key] >= value;
-		});
-	}
+    async renderChapter(data) {
+        const textDisplay = document.getElementById('text-display');
+        const choicesBox = document.getElementById('choices');
+        
+        textDisplay.innerHTML = '';
+        choicesBox.innerHTML = '';
 
-    async startBgTransition(chapter) {
-        return new Promise((resolve) => {
+        // Обработка вариантов главы
+        let content = data;
+        if (data.variants) {
+            content = data.variants.find(v => this.checkVariantConditions(v)) || data;
+        }
+
+        await this.startBgTransition(content);
+        await this.typewriterEffect(content.text);
+        this.showChoicesWithDelay(content.choices || []);
+        this.updateStatsDisplay();
+    }
+
+    checkVariantConditions(variant) {
+        if (!variant.trigger) return true;
+        if (variant.trigger.default) return true;
+        
+        return Object.entries(variant.trigger).every(([key, value]) => {
+            if (key === 'inventory') {
+                return Array.isArray(value) 
+                    ? value.every(item => this.states.inventory.includes(item))
+                    : this.states.inventory.includes(value);
+            }
+            return this.states[key] >= value;
+        });
+    }
+
+    async startBgTransition(content) {
+        return new Promise(resolve => {
             const gameContainer = document.getElementById('game-container');
             gameContainer.classList.add('changing-bg');
 
             setTimeout(async () => {
                 try {
-                    await this.loadBackground(chapter.background);
+                    await this.loadBackground(content.background);
                 } catch (error) {
-                    console.error('Ошибка загрузки фона:', error);
+                    console.error('Ошибка фона:', error);
                 }
                 gameContainer.classList.remove('changing-bg');
                 resolve();
@@ -203,16 +210,46 @@ class Game {
 
     handleChoice(choice) {
         if (!choice.next) {
-            this.showError('Следующая глава не указана');
+            this.showError('Нет следующей главы');
             return;
         }
 
-        try {
-            this.applyEffects(choice.effects || {});
+        this.applyEffects(choice.effects || {});
+        
+        if (choice.next.startsWith('ending_')) {
+            this.showEnding(choice.next);
+        } else {
             this.loadChapter(choice.next);
-        } catch (error) {
-            this.showError(`Ошибка выбора: ${error.message}`);
         }
+    }
+
+	async showEnding(endingId) {
+        try {
+            const response = await fetch(`/endings/${endingId}.json`);
+            const ending = await response.json();
+            
+            this.renderEnding(ending);
+            this.states.endings_unlocked.push(endingId);
+            
+        } catch (error) {
+            this.showError(`Ошибка концовки: ${error.message}`);
+        }
+    }
+
+	renderEnding(ending) {
+        const gameContainer = document.getElementById('game-container');
+        gameContainer.style.backgroundImage = `url('/backgrounds/${ending.background}')`;
+        
+        const endingHTML = `
+            <div class="ending-box">
+                <h2>${ending.title || 'КОНЕЦ'}</h2>
+                <p>${ending.text}</p>
+                <button onclick="location.reload()">Новая игра</button>
+            </div>
+        `;
+        
+        document.getElementById('text-display').innerHTML = endingHTML;
+        document.getElementById('choices').innerHTML = '';
     }
 
     checkRequirements(requires) {
@@ -278,7 +315,8 @@ function initGame() {
         lira_trust: 0,
         health: 100,
         currentChapter: 'chapter1',
-        inventory: []
+        inventory: [],
+        endings_unlocked: []
     };
     
     game.loadChapter('chapter1');
