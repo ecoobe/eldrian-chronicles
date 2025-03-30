@@ -3,6 +3,7 @@
     "background": "village_doomsday.webp",
     "text": "Адское пламя пожирает Ветролом. Воздух наполнен криками и звоном мечей. Перед вами три пути:",
     "ambience": "fire_screams.ogg",
+    "default_next": "chapter2",
     "characters": {
         "main": [
             {
@@ -24,6 +25,7 @@
     "choices": [
         {
             "text": "▸ [Спасательная операция] Броситься к горящей конюшне",
+            "next": "chapter1_rescue",
             "arc": "rescue",
             "characters": ["lira"],
             "requirements": {
@@ -37,6 +39,7 @@
         },
         {
             "text": "▸ [Мистическое расследование] Исследовать источник пламени",
+            "next": "chapter1_occult_altar",
             "arc": "mystery",
             "characters": ["elina"],
             "requirements": {
@@ -50,6 +53,7 @@
         },
         {
             "text": "▸ [Дипломатия] Переговоры с капитаном инквизиции",
+            "next": "chapter1_diplomacy",
             "arc": "diplomacy",
             "characters": ["grey_stranger"],
             "requirements": {
