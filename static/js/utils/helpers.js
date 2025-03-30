@@ -19,6 +19,30 @@ export function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+export function updateCharacterSprite(characterId, sprite) {
+    const container = document.getElementById('character-container');
+    const img = container.querySelector(`[data-character="${characterId}"]`);
+    
+    if (img) {
+        img.src = `/sprites/${sprite}`;
+        img.classList.add('sprite-updated');
+        setTimeout(() => img.classList.remove('sprite-updated'), 300);
+    }
+}
+
+export function showDialogue({ speaker, text, position = 'center', mood = 'neutral' }) {
+    const dialogueBox = document.getElementById('dialogue-box');
+    dialogueBox.innerHTML = `
+        <div class="dialogue ${position} ${mood}">
+            <span class="speaker">${speaker}:</span>
+            ${text}
+        </div>
+    `;
+    dialogueBox.classList.remove('hidden');
+    
+    setTimeout(() => dialogueBox.classList.add('visible'), 50);
+}
+
 export function updateStatsDisplay(states) {
     const elements = {
         healthBar: document.getElementById('health-bar'),
