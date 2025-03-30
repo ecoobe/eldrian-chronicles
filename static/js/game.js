@@ -346,18 +346,29 @@ class Game {
     }
 
     showAutoContinueButton() {
-        const choicesBox = document.getElementById('choices');
-        if (!choicesBox || !this.states.currentChapter) return;
-
-        const autoBtn = document.createElement('button');
-        autoBtn.className = 'choice-btn visible';
-        autoBtn.textContent = 'Продолжить...';
-        autoBtn.addEventListener('click', () => {
-            this.loadChapter(this.states.currentChapter);
-        });
-        
-        choicesBox.appendChild(autoBtn);
-    }
+		const choicesBox = document.getElementById('choices');
+		if (!choicesBox || !this.states.currentChapter) return;
+	
+		const autoBtn = document.createElement('button');
+		autoBtn.className = 'choice-btn visible';
+		autoBtn.textContent = 'Продолжить...';
+		
+		// Изменяем обработчик для загрузки следующей главы
+		autoBtn.addEventListener('click', () => {
+			const nextChapter = this.getNextChapterId(); // Новый метод
+			if (nextChapter) {
+				this.loadChapter(nextChapter);
+			}
+		});
+		
+		choicesBox.appendChild(autoBtn);
+	}
+	
+	// Добавляем метод для определения следующей главы
+	getNextChapterId() {
+		// Пример простой логики, должна быть заменена вашей реализацией
+		return this.currentChapterData?.default_next || 'chapter2';
+	}
 
     checkRequirements(requires) {
         if (!requires) return true;
