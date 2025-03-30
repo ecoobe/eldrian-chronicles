@@ -9,7 +9,6 @@ class MagicSystem {
             "void": { strength: 1.2, alignment: "eldritch" },
             "nature": { strength: 0.9, alignment: "order" }
         };
-        this.activeSpells = [];
     }
 
     castSpell(spellName) {
@@ -23,8 +22,10 @@ class MagicSystem {
             this.applySpellEffects(spell.effects);
             this.game.updateStatsDisplay();
             return true;
+        } else {
+            this.game.showError("Недостаточно силы для этого заклинания!");
+            return false;
         }
-        return false;
     }
 
     applySpellEffects(effects) {
@@ -50,6 +51,47 @@ class MagicSystem {
                 });
             }
         }
+    }
+}
+
+class SpellSystem {
+    constructor(game) {
+        this.game = game;
+        this.modal = document.getElementById('spell-modal');
+        this.spellChoices = document.getElementById('spell-choices');
+        this.closeBtn = document.getElementById('close-spell-modal');
+        
+        this.closeBtn.addEventListener('click', () => this.closeModal());
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) this.closeModal();
+        });
+    }
+
+    showSpells(spells) {
+        this.spellChoices.innerHTML = '';
+        
+        Object.entries(spells).forEach(([spellName, spellData]) => {
+            const spellBtn = document.createElement('div');
+            spellBtn.className = 'spell-choice';
+            spellBtn.textContent = spellData.name || spellName;
+            spellBtn.onclick = () => {
+                this.game.magicSystem.castSpell(spellName);
+                this.closeModal();
+            };
+            
+            if (!this.game.checkSpellRequirements(spellData)) {
+                spellBtn.classList.add('disabled');
+                spellBtn.onclick = null;
+            }
+            
+            this.spellChoices.appendChild(spellBtn);
+        });
+        
+        this.modal.classList.remove('hidden');
+    }
+
+    closeModal() {
+        this.modal.classList.add('hidden');
     }
 }
 
@@ -89,6 +131,10 @@ class Game {
         this.preloadBackgrounds();
     }
 
+    checkSpellRequirements(spellData) {
+        return this.states[spellData.skill] >= spellData.threshold;
+    }
+
     preloadBackgrounds() {
         const backgrounds = [
             'village_burning.webp',
@@ -120,7 +166,6 @@ class Game {
                 path = `/chapters/${chapterId}.json`;
             }
 
-            console.log(`[DEBUG] Загрузка: ${path}`);
             const response = await fetch(`${path}?t=${Date.now()}`);
             
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
@@ -157,49 +202,10 @@ class Game {
         this.updateStatsDisplay();
         this.updateFactionAI();
         this.updateEcosystem();
-    }
 
-    updateFactionAI() {
-        Object.entries(this.currentChapterData?.faction_ai || {}).forEach(([faction, ai]) => {
-            if (!this.factionStates[faction]) {
-                this.factionStates[faction] = {
-                    mood: ai.mood?.[0] || 'neutral',
-                    memory: []
-                };
-            }
-            
-            if (this.states.moral > 60 && ai.mood?.includes('benevolent')) {
-                this.factionStates[faction].mood = 'benevolent';
-            }
-        });
-    }
-
-    updateEcosystem() {
-        const now = Date.now();
-        const hoursPassed = (now - this.ecosystem.lastUpdate) / (1000 * 60 * 60);
-        
-        if (hoursPassed < 1) return;
-        
-        if (this.currentChapterData?.ecosystem?.predators) {
-            Object.entries(this.currentChapterData.ecosystem.predators).forEach(([species, count]) => {
-                this.ecosystem.predators[species] = count * (1 - 0.05 * hoursPassed);
-            });
+        if (data.spells && Object.keys(data.spells).length > 0) {
+            spellSystem.showSpells(data.spells);
         }
-        
-        this.ecosystem.lastUpdate = now;
-    }
-
-    handleAIResponse(faction, response) {
-        switch(response) {
-            case 'send_zealots':
-                this.states.church_hostility += 10;
-                break;
-            case 'burn_forest':
-                this.states.elina_trust -= 5;
-                break;
-            // Другие реакции...
-        }
-        this.updateStatsDisplay();
     }
 
     clearChoiceTimers() {
@@ -324,6 +330,11 @@ class Game {
         btn.disabled = !this.checkRequirements(choice.requires || {});
         btn.style.opacity = '0';
         btn.onclick = () => this.handleChoice(choice);
+        
+        if (choice.danger) btn.dataset.danger = "true";
+        if (choice.hidden) btn.dataset.hidden = "true";
+        if (choice.timeout) btn.dataset.timer = choice.timeout;
+        
         return btn;
     }
 
@@ -499,34 +510,78 @@ class Game {
     }
 
     updateStatsDisplay() {
-		const elements = {
-			healthBar: document.getElementById('health-bar'),
-			healthValue: document.getElementById('health-value'),
-			magicBar: document.getElementById('magic-bar'),
-			magicValue: document.getElementById('magic-value'),
-			inventoryCount: document.getElementById('inventory-count'),
-			liraTrust: document.getElementById('lira-trust'),
-			moralValue: document.getElementById('moral-value'),
-			// Добавляем проверку на существование элементов
-			goldValue: document.getElementById('gold-value') || { textContent: '' },
-			sanityValue: document.getElementById('sanity-value') || { textContent: '' },
-			fateValue: document.getElementById('fate-value') || { textContent: '' }
-		};
-	
-		// Основные обязательные элементы
-		if (elements.healthBar) elements.healthBar.style.width = `${this.states.health}%`;
-		if (elements.healthValue) elements.healthValue.textContent = this.states.health;
-		if (elements.magicBar) elements.magicBar.style.width = `${this.states.magic}%`;
-		if (elements.magicValue) elements.magicValue.textContent = this.states.magic;
-		if (elements.inventoryCount) elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
-		if (elements.liraTrust) elements.liraTrust.textContent = this.states.lira_trust;
-		if (elements.moralValue) elements.moralValue.textContent = this.states.moral;
-		
-		// Дополнительные элементы (если существуют)
-		if (elements.goldValue) elements.goldValue.textContent = this.states.gold;
-		if (elements.sanityValue) elements.sanityValue.textContent = this.states.sanity;
-		if (elements.fateValue) elements.fateValue.textContent = this.states.fate;
-	}
+        const elements = {
+            healthBar: document.getElementById('health-bar'),
+            healthValue: document.getElementById('health-value'),
+            magicBar: document.getElementById('magic-bar'),
+            magicValue: document.getElementById('magic-value'),
+            inventoryCount: document.getElementById('inventory-count'),
+            liraTrust: document.getElementById('lira-trust'),
+            moralValue: document.getElementById('moral-value'),
+            goldValue: document.getElementById('gold-value') || { textContent: '' },
+            sanityValue: document.getElementById('sanity-value') || { textContent: '' },
+            fateValue: document.getElementById('fate-value') || { textContent: '' },
+            combatValue: document.getElementById('combat-value') || { textContent: '' },
+            insightValue: document.getElementById('insight-value') || { textContent: '' },
+            churchHostility: document.getElementById('church-hostility') || { textContent: '' }
+        };
+
+        if (elements.healthBar) elements.healthBar.style.width = `${this.states.health}%`;
+        if (elements.healthValue) elements.healthValue.textContent = this.states.health;
+        if (elements.magicBar) elements.magicBar.style.width = `${this.states.magic}%`;
+        if (elements.magicValue) elements.magicValue.textContent = this.states.magic;
+        if (elements.inventoryCount) elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
+        if (elements.liraTrust) elements.liraTrust.textContent = this.states.lira_trust;
+        if (elements.moralValue) elements.moralValue.textContent = this.states.moral;
+        if (elements.goldValue) elements.goldValue.textContent = this.states.gold;
+        if (elements.sanityValue) elements.sanityValue.textContent = this.states.sanity;
+        if (elements.fateValue) elements.fateValue.textContent = this.states.fate;
+        if (elements.combatValue) elements.combatValue.textContent = this.states.combat_skill;
+        if (elements.insightValue) elements.insightValue.textContent = this.states.insight;
+        if (elements.churchHostility) elements.churchHostility.textContent = this.states.church_hostility;
+    }
+
+    updateFactionAI() {
+        Object.entries(this.currentChapterData?.faction_ai || {}).forEach(([faction, ai]) => {
+            if (!this.factionStates[faction]) {
+                this.factionStates[faction] = {
+                    mood: ai.mood?.[0] || 'neutral',
+                    memory: []
+                };
+            }
+            
+            if (this.states.moral > 60 && ai.mood?.includes('benevolent')) {
+                this.factionStates[faction].mood = 'benevolent';
+            }
+        });
+    }
+
+    updateEcosystem() {
+        const now = Date.now();
+        const hoursPassed = (now - this.ecosystem.lastUpdate) / (1000 * 60 * 60);
+        
+        if (hoursPassed < 1) return;
+        
+        if (this.currentChapterData?.ecosystem?.predators) {
+            Object.entries(this.currentChapterData.ecosystem.predators).forEach(([species, count]) => {
+                this.ecosystem.predators[species] = count * (1 - 0.05 * hoursPassed);
+            });
+        }
+        
+        this.ecosystem.lastUpdate = now;
+    }
+
+    handleAIResponse(faction, response) {
+        switch(response) {
+            case 'send_zealots':
+                this.states.church_hostility += 10;
+                break;
+            case 'burn_forest':
+                this.states.elina_trust -= 5;
+                break;
+        }
+        this.updateStatsDisplay();
+    }
 
     showError(message) {
         const errorHTML = `
@@ -541,6 +596,7 @@ class Game {
 }
 
 const game = new Game();
+const spellSystem = new SpellSystem(game);
 
 function initGame() {
     document.getElementById('main-menu').classList.add('hidden');

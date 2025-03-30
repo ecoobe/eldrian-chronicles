@@ -458,6 +458,27 @@ body {
     animation: spellCast 2s forwards;
 }
 
+.spell-choices-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.spell-choice {
+    background: rgba(50, 50, 50, 0.7);
+    border: 1px solid var(--accent-blue);
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.spell-choice:hover {
+    background: rgba(93, 138, 168, 0.3);
+    transform: translateY(-2px);
+}
+
 @keyframes spellCast {
     0% { opacity: 0; transform: scale(0.5); }
     50% { opacity: 1; transform: scale(1.2); }

@@ -102,13 +102,13 @@
     </div>
 
     <!-- Модальное окно для заклинаний -->
-    <div id="spell-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>Выберите заклинание</h3>
-            <div id="spell-choices"></div>
-            <button class="close-btn" onclick="document.getElementById('spell-modal').classList.add('hidden')">Закрыть</button>
-        </div>
-    </div>
+	<div id="spell-modal" class="modal hidden">
+		<div class="modal-content">
+			<h3>Выберите заклинание</h3>
+			<div id="spell-choices" class="spell-choices-grid"></div>
+			<button id="close-spell-modal" class="close-btn">Закрыть</button>
+		</div>
+	</div>
 
     <script src="/js/game.js"></script>
 </body>
