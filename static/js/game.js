@@ -374,6 +374,23 @@ class Game {
 		return btn;
 	}
 
+    fadeInElement(element) {
+        let opacity = 0;
+        const DURATION = 800;
+        const startTime = performance.now();
+        
+        const animate = (timestamp) => {
+            const progress = timestamp - startTime;
+            opacity = Math.min(progress / DURATION, 1);
+            element.style.opacity = opacity;
+            
+            if (opacity < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        requestAnimationFrame(animate);
+    }
+
     startChoiceTimer(choice, duration) {
         const timer = setTimeout(() => {
             this.autoResolveChoice(choice);
