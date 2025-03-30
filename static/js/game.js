@@ -12,40 +12,40 @@ class MagicSystem {
     }
 
     castSpell(spellName) {
-        const spell = this.game.currentChapterData.spells?.[spellName];
+        const spell = this.game.currentChapterData?.spells?.[spellName];
         if (!spell) return false;
 
         const leyLine = this.leyLines[spell.element];
-        const power = leyLine.strength * this.game.states[spell.skill];
+        const power = leyLine.strength * (this.game.states[spell.skill] || 0);
         
         if (power > spell.threshold) {
             this.applySpellEffects(spell.effects);
             this.game.updateStatsDisplay();
             return true;
-        } else {
-            this.game.showError("Недостаточно силы для этого заклинания!");
-            return false;
         }
+        
+        this.game.showError("Недостаточно силы для этого заклинания!");
+        return false;
     }
 
-    applySpellEffects(effects) {
+    applySpellEffects(effects = []) {
         effects.forEach(effect => {
             if (effect.type === 'faction_reaction') {
                 this.triggerFactionAI(effect.faction, effect.action);
             } else if (effect.type === 'stat_change') {
-                this.game.states[effect.target] += effect.value;
+                this.game.states[effect.target] = (this.game.states[effect.target] || 0) + effect.value;
             }
         });
     }
 
     triggerFactionAI(faction, action) {
-        const ai = this.game.currentChapterData.faction_ai?.[faction];
+        const ai = this.game.currentChapterData?.faction_ai?.[faction];
         if (!ai) return;
 
         if (ai.strategy) {
-            const condition = ai.strategy.if.replace('player_moral', this.game.states.moral);
+            const condition = ai.strategy.if?.replace('player_moral', this.game.states.moral) || '';
             if (this.game.parseCondition(condition)) {
-                ai.strategy.then.forEach(response => {
+                ai.strategy.then?.forEach(response => {
                     console.log(`Фракция ${faction} реагирует: ${response}`);
                     this.game.handleAIResponse(faction, response);
                 });
@@ -61,18 +61,17 @@ class SpellSystem {
         this.spellChoices = document.getElementById('spell-choices');
         this.closeBtn = document.getElementById('close-spell-modal');
         
-        this.closeBtn.addEventListener('click', () => this.closeModal());
-        this.modal.addEventListener('click', (e) => {
+        this.closeBtn?.addEventListener('click', () => this.closeModal());
+        this.modal?.addEventListener('click', (e) => {
             if (e.target === this.modal) this.closeModal();
         });
     }
 
     showSpells(spells) {
-		// Проверяем что spells - объект и не пустой
-		if (!spells || typeof spells !== 'object' || Object.keys(spells).length === 0) {
-			this.closeModal();
-			return;
-		}
+        if (!spells || typeof spells !== 'object' || Object.keys(spells).length === 0) {
+            this.closeModal();
+            return;
+        }
 
         this.spellChoices.innerHTML = '';
         
@@ -80,32 +79,32 @@ class SpellSystem {
             const spellBtn = document.createElement('div');
             spellBtn.className = 'spell-choice';
             spellBtn.textContent = spellData.name || spellName;
-            spellBtn.onclick = () => {
+            
+            const canCast = this.game.checkSpellRequirements(spellData);
+            spellBtn.onclick = canCast ? () => {
                 this.game.magicSystem.castSpell(spellName);
                 this.closeModal();
-            };
+            } : null;
             
-            if (!this.game.checkSpellRequirements(spellData)) {
+            if (!canCast) {
                 spellBtn.classList.add('disabled');
-                spellBtn.onclick = null;
             }
             
             this.spellChoices.appendChild(spellBtn);
         });
         
-        this.modal.classList.remove('hidden');
+        this.modal?.classList.remove('hidden');
     }
 
     closeModal() {
-		console.log('Closing spell modal');
-        this.modal.classList.add('hidden');
+        this.modal?.classList.add('hidden');
     }
 }
 
 class Game {
     constructor() {
         this.states = {
-			currentChapter: 'chapter1',
+            currentChapter: 'chapter1',
             magic: 0,
             lira_trust: 0,
             kyle_trust: 0,
@@ -125,6 +124,7 @@ class Game {
             combat_skill: 0,
             insight: 0
         };
+
         this.isLoading = false;
         this.currentChapterData = null;
         this.choiceTimers = new Map();
@@ -135,11 +135,12 @@ class Game {
             prey: {},
             lastUpdate: Date.now()
         };
+        
         this.preloadBackgrounds();
     }
 
     checkSpellRequirements(spellData) {
-        return this.states[spellData.skill] >= spellData.threshold;
+        return (this.states[spellData.skill] || 0) >= spellData.threshold;
     }
 
     preloadBackgrounds() {
@@ -157,305 +158,148 @@ class Game {
     }
 
     async loadChapter(chapterId) {
-		if (!chapterId || typeof chapterId !== 'string') {
-			const errorMsg = `Некорректный ID главы: ${chapterId}`;
-			console.error(errorMsg);
-			return Promise.reject(new Error(errorMsg));
-		}
+        if (!chapterId || typeof chapterId !== 'string') {
+            return Promise.reject(new Error(`Некорректный ID главы: ${chapterId}`));
+        }
 
-		if (!chapterId) {
-			this.showError("Не указан ID главы");
-			return Promise.reject("Invalid chapter ID");
-		}
-	
-		if (this.isLoading) {
-			console.warn("Попытка повторной загрузки во время процесса загрузки");
-			return Promise.reject("Already loading");
-		}
-	
-		this.isLoading = true;
-		console.log(`[DEBUG] Начало загрузки главы ${chapterId}`);
-	
-		try {
-			let path = chapterId.startsWith('ending_') 
-				? `/endings/${chapterId}.json` 
-				: `/chapters/${chapterId}.json`;
-	
-			console.log(`[DEBUG] Запрашиваю: ${path}`);
-			const response = await fetch(`${path}?t=${Date.now()}`);
-			
-			if (!response.ok) {
-				throw new Error(`HTTP error: ${response.status}`);
-			}
-	
-			const data = await response.json();
-			console.log("[DEBUG] Данные главы получены:", data);
-	
-			this.states.currentChapter = chapterId;
-			await this.renderChapter(data);
-			
-		} catch (error) {
-			console.error("Ошибка загрузки:", error);
-			this.showError(`Ошибка в ${chapterId}: ${error.message}`);
-			throw error; // Пробрасываем ошибку дальше
-		} finally {
-			this.isLoading = false;
-			console.log("[DEBUG] Загрузка главы завершена");
-		}
-	}
+        if (this.isLoading) {
+            return Promise.reject("Already loading");
+        }
+
+        this.isLoading = true;
+        
+        try {
+            const path = chapterId.startsWith('ending_') 
+                ? `/endings/${chapterId}.json` 
+                : `/chapters/${chapterId}.json`;
+
+            const response = await fetch(`${path}?t=${Date.now()}`);
+            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+            const data = await response.json();
+            this.states.currentChapter = chapterId;
+            await this.renderChapter(data);
+            
+            return data;
+        } catch (error) {
+            console.error("Ошибка загрузки:", error);
+            this.showError(`Ошибка в ${chapterId}: ${error.message}`);
+            throw error;
+        } finally {
+            this.isLoading = false;
+        }
+    }
 
     async renderChapter(data) {
-		// Добавить в начало метода
-		if (!data || typeof data !== 'object') {
-			const errorMsg = "Некорректные данные главы";
-			console.error(errorMsg);
-			throw new Error(errorMsg);
-		}
-		
-		// Добавить проверку choices
-		if (!Array.isArray(data.choices)) {
-			console.warn("Отсутствует массив choices, создаем пустой");
-			data.choices = [];
-		}
+        if (!data || typeof data !== 'object') {
+            throw new Error("Некорректные данные главы");
+        }
 
-		console.log("[RENDER] Начало рендеринга");
-		const textDisplay = document.getElementById('text-display');
-		const choicesBox = document.getElementById('choices');
-		
-		// Принудительное отображение элементов
-		textDisplay.style.display = 'block';
-		choicesBox.style.display = 'flex';
-		textDisplay.innerHTML = '<div class="text-content"></div>';
-		
-		// Очистка предыдущего состояния
-		this.clearChoiceTimers();
-		cancelAnimationFrame(currentAnimationFrame);
-	
-		// Проверка данных
-		if (!data || !data.text) {
-			console.error("Некорректные данные главы:", data);
-			return;
-		}
-	
-		// Загрузка фона
-		try {
-			await this.loadBackground(data.background);
-		} catch (error) {
-			console.error("Ошибка фона:", error);
-		}
-	
-		// Отображение текста
-		const textContent = textDisplay.querySelector('.text-content');
-		await this.typewriterEffect(data.text, textContent);
-	
-		// Отображение выбора
-		if (data.choices && data.choices.length > 0) {
-			this.showChoicesWithDelay(data.choices);
-		} else {
-			console.warn("Нет доступных выборов");
-		}
-	
-		this.updateStatsDisplay();
-		console.log("[RENDER] Рендеринг завершен");
-	}
+        const textDisplay = document.getElementById('text-display');
+        const choicesBox = document.getElementById('choices');
+
+        // Сброс состояния
+        this.clearChoiceTimers();
+        cancelAnimationFrame(currentAnimationFrame);
+        
+        // Загрузка фона
+        await this.loadBackground(data.background).catch(console.error);
+
+        // Отображение текста
+        textDisplay.innerHTML = '<div class="text-content"></div>';
+        await this.typewriterEffect(data.text);
+
+        // Обработка вариантов выбора
+        const choices = Array.isArray(data.choices) ? data.choices : [];
+        this.showChoicesWithDelay(choices);
+
+        this.updateStatsDisplay();
+    }
 
     clearChoiceTimers() {
         this.choiceTimers.forEach(timer => clearTimeout(timer));
         this.choiceTimers.clear();
     }
 
-    checkVariantConditions(variant) {
-        if (!variant.trigger) return true;
-        if (variant.trigger.default) return true;
-        
-        return Object.entries(variant.trigger).every(([key, value]) => {
-            if (key === 'inventory') {
-                return Array.isArray(value) 
-                    ? value.every(item => this.states.inventory.includes(item))
-                    : this.states.inventory.includes(value);
-            }
-            if (key === 'not_inventory') {
-                return Array.isArray(value)
-                    ? value.every(item => !this.states.inventory.includes(item))
-                    : !this.states.inventory.includes(value);
-            }
-            return this.states[key] >= value;
-        });
-    }
-
-    async startBgTransition(content) {
-        return new Promise(resolve => {
-            const gameContainer = document.getElementById('game-container');
-            gameContainer.classList.add('changing-bg');
-
-            setTimeout(async () => {
-                try {
-                    await this.loadBackground(content.background);
-                } catch (error) {
-                    console.error('Ошибка фона:', error);
-                }
-                gameContainer.classList.remove('changing-bg');
-                resolve();
-            }, 1200);
-        });
-    }
-
-    loadBackground(background) {
-        return new Promise((resolve, reject) => {
-			console.log(`[DEBUG] Пытаюсь загрузить фон: /backgrounds/${background}`);
-            const gameContainer = document.getElementById('game-container');
-            const bgImage = new Image();
-            
-            bgImage.onload = () => {
-				console.log(`[DEBUG] Фон успешно загружен: ${bgImage.src}`);
-                gameContainer.style.backgroundImage = `url('${bgImage.src}')`;
-                resolve();
-            };
-            
-            bgImage.onerror = () => {
-				console.error(`[DEBUG] Ошибка загрузки фона: ${background}`);
-                gameContainer.style.backgroundImage = 'url("/backgrounds/main_menu.webp")';
-                reject(new Error(`Не удалось загрузить фон: ${background}`));
-            };
-
-            bgImage.src = `/backgrounds/${background}`;
-        });
-    }
-
     async typewriterEffect(text) {
-		const textDisplay = document.getElementById('text-display');
-		// Очищаем и устанавливаем минимальную высоту
-		textDisplay.innerHTML = '<div class="text-content" style="min-height: 100px;"></div>';
-		const contentDiv = textDisplay.querySelector('.text-content');
-		
-		let index = 0;
-		const SPEED_PER_MS = 30; // Скорость печати (меньше = быстрее)
-		const cursor = '<span class="typewriter-cursor">|</span>';
-		
-		return new Promise((resolve) => {
-			const animate = () => {
-				if (index < text.length) {
-					// Добавляем по одному символу + курсор
-					contentDiv.innerHTML = text.substring(0, index + 1) + cursor;
-					index++;
-					setTimeout(animate, SPEED_PER_MS + Math.random() * 20); // Случайные задержки для естественности
-				} else {
-					contentDiv.innerHTML = text; // Убираем курсор в конце
-					resolve();
-				}
-			};
-			animate();
-		});
-	}
+        const textDisplay = document.getElementById('text-display');
+        const contentDiv = textDisplay.querySelector('.text-content');
+        
+        let index = 0;
+        const SPEED_PER_MS = 30;
+        const cursor = '<span class="typewriter-cursor">|</span>';
+        
+        return new Promise((resolve) => {
+            const animate = () => {
+                if (index < text.length) {
+                    contentDiv.innerHTML = text.substring(0, index + 1) + cursor;
+                    index++;
+                    setTimeout(animate, SPEED_PER_MS + Math.random() * 20);
+                } else {
+                    contentDiv.innerHTML = text;
+                    resolve();
+                }
+            };
+            animate();
+        });
+    }
 
-	showAutoContinueButton() {
-		if (!this.states?.currentChapter) {
-			console.error("Невозможно продолжить: текущая глава не определена");
-			return;
-		}
-		
-		const choicesBox = document.getElementById('choices');
-		if (!choicesBox) {
-			console.error("Элемент choices не найден");
-			return;
-		}
+    showChoicesWithDelay(choices = []) {
+        const visibleChoices = choices.filter(choice => {
+            try {
+                return this.checkRequirements(choice.requires || {});
+            } catch (e) {
+                console.error("Ошибка проверки условий:", e);
+                return false;
+            }
+        });
 
-		console.log("Нет доступных выборов - показываем кнопку продолжения");
-		choicesBox.innerHTML = '';
-		
-		const autoBtn = document.createElement('button');
-		autoBtn.className = 'choice-btn visible';
-		autoBtn.textContent = 'Продолжить...';
-		autoBtn.addEventListener('click', () => {
-			this.loadChapter(this.states.currentChapter);
-		});
-		
-		choicesBox.appendChild(autoBtn);
-	}
+        const choicesBox = document.getElementById('choices');
+        if (!choicesBox) return;
 
-    showChoicesWithDelay(choices) {
-		const visibleChoices = choices.filter(choice => {
-			if (visibleChoices.length === 0) {
-				console.warn("Нет доступных вариантов выбора!");
-				this.showAutoContinueButton(); // Теперь метод существует
-				return;
-			}
-			try {
-				return this.checkRequirements(choice.requires || {});
-			} catch (e) {
-				console.error("Ошибка проверки условий:", e);
-				return false;
-			}
-		});
-	
-		console.log("Доступные выборы:", visibleChoices); // Добавьте логирование
-		
-		const choicesBox = document.getElementById('choices');
-		choicesBox.innerHTML = '';
-		
-		if (visibleChoices.length === 0) {
-			console.warn("Нет доступных вариантов выбора!");
-			this.showAutoContinueButton();
-			return;
-		}
-	
-		visibleChoices.forEach((choice, i) => {
-			const btn = this.createChoiceButton(choice);
-			choicesBox.appendChild(btn);
-			
-			// Упрощенная анимация
-			setTimeout(() => {
-				btn.classList.add('visible');
-				console.log("Кнопка добавлена:", btn); // Логирование
-			}, i * 100);
-		});
-	}
+        choicesBox.innerHTML = '';
+
+        if (visibleChoices.length === 0) {
+            this.showAutoContinueButton();
+            return;
+        }
+
+        visibleChoices.forEach((choice, i) => {
+            const btn = this.createChoiceButton(choice);
+            choicesBox.appendChild(btn);
+            
+            setTimeout(() => {
+                btn.classList.add('visible');
+            }, i * 100);
+        });
+    }
 
     createChoiceButton(choice) {
-		const btn = document.createElement('button');
-		btn.className = 'choice-btn';
-		btn.textContent = choice.text || "Без текста";
-		btn.dataset.choiceId = choice.id || Math.random().toString(36).substr(2, 9);
-		
-		// Уберите inline стили
-		btn.style.opacity = '0'; 
-		btn.style.transform = 'translateY(20px)';
-		
-		btn.addEventListener('click', (e) => {
-			console.log("Клик зарегистрирован:", e.target);
-			this.handleChoice(choice);
-		});
-		
-		try {
-			btn.disabled = !this.checkRequirements(choice.requires || {});
-		} catch (e) {
-			console.error("Ошибка проверки требований:", e);
-			btn.disabled = true;
-		}
-	
-		return btn;
-	}	
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = choice.text || "Без текста";
+        btn.dataset.choiceId = choice.id || Math.random().toString(36).slice(2, 9);
+        
+        btn.addEventListener('click', () => this.handleChoice(choice));
+        
+        try {
+            btn.disabled = !this.checkRequirements(choice.requires || {});
+        } catch (e) {
+            console.error("Ошибка требований:", e);
+            btn.disabled = true;
+        }
 
-    startChoiceTimer(choice, duration) {
-        const timer = setTimeout(() => {
-            this.autoResolveChoice(choice);
-        }, duration * 1000);
-        this.choiceTimers.set(choice.id || choice.text, timer);
-    }
-
-    autoResolveChoice(choice) {
-        console.log(`Автовыбор: ${choice.text}`);
-        this.handleChoice(choice);
+        return btn;
     }
 
     handleChoice(choice) {
-        if (!choice.next) {
+        if (!choice?.next) {
             this.showError('Нет следующей главы');
             return;
         }
 
         this.applyEffects(choice.effects || {});
-        
+
         if (choice.next === 'reveal_chapter') {
             this.revealChapter(choice.reveal);
         } else if (choice.next.startsWith('ending_')) {
@@ -465,41 +309,18 @@ class Game {
         }
     }
 
-    revealChapter(chapterId) {
-        if (!this.states.revealedChapters.includes(chapterId)) {
-            this.states.revealedChapters.push(chapterId);
-        }
-        this.loadChapter(chapterId);
-    }
+    showAutoContinueButton() {
+        const choicesBox = document.getElementById('choices');
+        if (!choicesBox || !this.states.currentChapter) return;
 
-    async showEnding(endingId) {
-        try {
-            const response = await fetch(`/endings/${endingId}.json`);
-            const ending = await response.json();
-            
-            this.renderEnding(ending);
-            this.states.endings_unlocked.push(endingId);
-            
-        } catch (error) {
-            this.showError(`Ошибка концовки: ${error.message}`);
-        }
-    }
-
-    renderEnding(ending) {
-        const gameContainer = document.getElementById('game-container');
-        gameContainer.style.backgroundImage = `url('/backgrounds/${ending.background}')`;
+        const autoBtn = document.createElement('button');
+        autoBtn.className = 'choice-btn visible';
+        autoBtn.textContent = 'Продолжить...';
+        autoBtn.addEventListener('click', () => {
+            this.loadChapter(this.states.currentChapter);
+        });
         
-        const endingHTML = `
-            <div class="ending-box">
-                <h2>${ending.title || 'КОНЕЦ'}</h2>
-                <p>${ending.text}</p>
-                <button onclick="location.reload()">Новая игра</button>
-                <button onclick="showEndingsGallery()">Галерея концовок</button>
-            </div>
-        `;
-        
-        document.getElementById('text-display').innerHTML = endingHTML;
-        document.getElementById('choices').innerHTML = '';
+        choicesBox.appendChild(autoBtn);
     }
 
     checkRequirements(requires) {
@@ -599,57 +420,72 @@ class Game {
             inventoryCount: document.getElementById('inventory-count'),
             liraTrust: document.getElementById('lira-trust'),
             moralValue: document.getElementById('moral-value'),
-            goldValue: document.getElementById('gold-value') || { textContent: '' },
-            sanityValue: document.getElementById('sanity-value') || { textContent: '' },
-            fateValue: document.getElementById('fate-value') || { textContent: '' },
-            combatValue: document.getElementById('combat-value') || { textContent: '' },
-            insightValue: document.getElementById('insight-value') || { textContent: '' },
-            churchHostility: document.getElementById('church-hostility') || { textContent: '' }
+            goldValue: document.getElementById('gold-value'),
+            sanityValue: document.getElementById('sanity-value'),
+            fateValue: document.getElementById('fate-value'),
+            combatValue: document.getElementById('combat-value'),
+            insightValue: document.getElementById('insight-value'),
+            churchHostility: document.getElementById('church-hostility')
         };
 
+        // Обновление прогресс-баров
         if (elements.healthBar) elements.healthBar.style.width = `${this.states.health}%`;
-        if (elements.healthValue) elements.healthValue.textContent = this.states.health;
         if (elements.magicBar) elements.magicBar.style.width = `${this.states.magic}%`;
-        if (elements.magicValue) elements.magicValue.textContent = this.states.magic;
-        if (elements.inventoryCount) elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
-        if (elements.liraTrust) elements.liraTrust.textContent = this.states.lira_trust;
-        if (elements.moralValue) elements.moralValue.textContent = this.states.moral;
-        if (elements.goldValue) elements.goldValue.textContent = this.states.gold;
-        if (elements.sanityValue) elements.sanityValue.textContent = this.states.sanity;
-        if (elements.fateValue) elements.fateValue.textContent = this.states.fate;
-        if (elements.combatValue) elements.combatValue.textContent = this.states.combat_skill;
-        if (elements.insightValue) elements.insightValue.textContent = this.states.insight;
-        if (elements.churchHostility) elements.churchHostility.textContent = this.states.church_hostility;
+
+        // Обновление текстовых значений
+        const updateElement = (element, value) => {
+            if (element) element.textContent = value;
+        };
+
+        updateElement(elements.healthValue, this.states.health);
+        updateElement(elements.magicValue, this.states.magic);
+        updateElement(elements.inventoryCount, `${this.states.inventory.length}/10`);
+        updateElement(elements.liraTrust, this.states.lira_trust);
+        updateElement(elements.moralValue, this.states.moral);
+        updateElement(elements.goldValue, this.states.gold);
+        updateElement(elements.sanityValue, this.states.sanity);
+        updateElement(elements.fateValue, this.states.fate);
+        updateElement(elements.combatValue, this.states.combat_skill);
+        updateElement(elements.insightValue, this.states.insight);
+        updateElement(elements.churchHostility, this.states.church_hostility);
     }
 
-    updateFactionAI() {
-        Object.entries(this.currentChapterData?.faction_ai || {}).forEach(([faction, ai]) => {
-            if (!this.factionStates[faction]) {
-                this.factionStates[faction] = {
-                    mood: ai.mood?.[0] || 'neutral',
-                    memory: []
-                };
+    revealChapter(chapterId) {
+        if (!this.states.revealedChapters.includes(chapterId)) {
+            this.states.revealedChapters.push(chapterId);
+        }
+        this.loadChapter(chapterId);
+    }
+
+    async showEnding(endingId) {
+        try {
+            const response = await fetch(`/endings/${endingId}.json`);
+            const ending = await response.json();
+            
+            const gameContainer = document.getElementById('game-container');
+            if (gameContainer) {
+                gameContainer.style.backgroundImage = `url('/backgrounds/${ending.background}')`;
             }
             
-            if (this.states.moral > 60 && ai.mood?.includes('benevolent')) {
-                this.factionStates[faction].mood = 'benevolent';
-            }
-        });
-    }
-
-    updateEcosystem() {
-        const now = Date.now();
-        const hoursPassed = (now - this.ecosystem.lastUpdate) / (1000 * 60 * 60);
-        
-        if (hoursPassed < 1) return;
-        
-        if (this.currentChapterData?.ecosystem?.predators) {
-            Object.entries(this.currentChapterData.ecosystem.predators).forEach(([species, count]) => {
-                this.ecosystem.predators[species] = count * (1 - 0.05 * hoursPassed);
-            });
+            const endingHTML = `
+                <div class="ending-box">
+                    <h2>${ending.title || 'КОНЕЦ'}</h2>
+                    <p>${ending.text}</p>
+                    <button onclick="location.reload()">Новая игра</button>
+                    <button onclick="showEndingsGallery()">Галерея концовок</button>
+                </div>
+            `;
+            
+            const textDisplay = document.getElementById('text-display');
+            if (textDisplay) textDisplay.innerHTML = endingHTML;
+            
+            const choicesBox = document.getElementById('choices');
+            if (choicesBox) choicesBox.innerHTML = '';
+            
+            this.states.endings_unlocked.push(endingId);
+        } catch (error) {
+            this.showError(`Ошибка концовки: ${error.message}`);
         }
-        
-        this.ecosystem.lastUpdate = now;
     }
 
     handleAIResponse(faction, response) {
@@ -672,7 +508,15 @@ class Game {
                 <button onclick="location.reload()">Перезагрузить</button>
             </div>
         `;
-        document.body.innerHTML = errorHTML;
+        
+        const parser = new DOMParser();
+        const errorNode = parser.parseFromString(errorHTML, 'text/html').body.firstChild;
+        
+        if (document.body) {
+            document.body.appendChild(errorNode);
+        } else {
+            document.write(errorHTML);
+        }
     }
 }
 
@@ -680,30 +524,20 @@ const game = new Game();
 const spellSystem = new SpellSystem(game);
 
 function initGame() {
-    console.log("[DEBUG] Инициализация игры...");
-
-	setTimeout(() => {
-		console.log("Проверка видимости:",
-			document.getElementById('game-container').style.display,
-			document.getElementById('text-display').style.opacity,
-			window.getComputedStyle(document.getElementById('game-container')).getPropertyValue('opacity')
-		);
-	}, 1000);
-    
-    // Блокируем кнопку на время загрузки
     const startBtn = document.getElementById('start-game-btn');
+    if (!startBtn) return;
+
     startBtn.disabled = true;
     startBtn.textContent = "Загрузка...";
 
-    // Закрываем все модальные окна
-    spellSystem.closeModal();
+    const mainMenu = document.getElementById('main-menu');
+    const gameContainer = document.getElementById('game-container');
 
-    // Переключаем видимость
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('game-container').classList.remove('hidden');
+    if (mainMenu) mainMenu.classList.add('hidden');
+    if (gameContainer) gameContainer.classList.remove('hidden');
 
-    // Сброс состояния
-    game.states = {
+    // Сброс состояния игры
+    Object.assign(game.states = {
         magic: 0,
         lira_trust: 0,
         kyle_trust: 0,
@@ -723,7 +557,7 @@ function initGame() {
         church_hostility: 0,
         combat_skill: 0,
         insight: 0
-    };
+    });
 
     // Загрузка главы с защитой от рекурсии
     console.log("[DEBUG] Начинаем загрузку chapter1");
