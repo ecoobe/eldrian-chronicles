@@ -1,64 +1,77 @@
 export async function loadBackground(background) {
-    return new Promise((resolve, reject) => {
-        const gameContainer = document.getElementById('game-container');
-        if (!gameContainer) return reject('Игровой контейнер не найден');
+    const gameContainer = document.getElementById('game-container');
+    if (!gameContainer) {
+        throw new Error('Game container element not found');
+    }
 
+    return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
             gameContainer.style.backgroundImage = `url(${img.src})`;
             resolve();
         };
-        img.onerror = () => reject(`Ошибка загрузки фона: ${background}`);
+        img.onerror = () => reject(new Error(`Failed to load background: ${background}`));
         img.src = `/backgrounds/${background}`;
     });
 }
 
-export function updateStatsDisplay() {
-	const elements = {
-		healthBar: document.getElementById('health-bar'),
-		healthValue: document.getElementById('health-value'),
-		magicBar: document.getElementById('magic-bar'),
-		magicValue: document.getElementById('magic-value'),
-		inventoryCount: document.getElementById('inventory-count'),
-		liraTrust: document.getElementById('lira-trust'),
-		moralValue: document.getElementById('moral-value'),
-		goldValue: document.getElementById('gold-value'),
-		sanityValue: document.getElementById('sanity-value'),
-		fateValue: document.getElementById('fate-value'),
-		combatValue: document.getElementById('combat-value'),
-		insightValue: document.getElementById('insight-value'),
-		churchHostility: document.getElementById('church-hostility')
-	};
+export function updateStatsDisplay(states) {
+    const elements = {
+        healthBar: document.getElementById('health-bar'),
+        healthValue: document.getElementById('health-value'),
+        magicBar: document.getElementById('magic-bar'),
+        magicValue: document.getElementById('magic-value'),
+        inventoryCount: document.getElementById('inventory-count'),
+        liraTrust: document.getElementById('lira-trust'),
+        moralValue: document.getElementById('moral-value'),
+        goldValue: document.getElementById('gold-value'),
+        sanityValue: document.getElementById('sanity-value'),
+        fateValue: document.getElementById('fate-value'),
+        combatValue: document.getElementById('combat-value'),
+        insightValue: document.getElementById('insight-value'),
+        churchHostility: document.getElementById('church-hostility')
+    };
 
-	// Обновление прогресс-баров
-	if (elements.healthBar) elements.healthBar.style.width = `${this.states.health}%`;
-	if (elements.magicBar) elements.magicBar.style.width = `${this.states.magic}%`;
+    // Обновление прогресс-баров
+    const updateProgress = (element, value) => {
+        if (element) element.style.width = `${Math.min(100, Math.max(0, value))}%`;
+    };
 
-	// Обновление текстовых значений
-	const updateElement = (element, value) => {
-		if (element) element.textContent = value;
-	};
+    updateProgress(elements.healthBar, states.health);
+    updateProgress(elements.magicBar, states.magic);
 
-	updateElement(elements.healthValue, this.states.health);
-	updateElement(elements.magicValue, this.states.magic);
-	updateElement(elements.inventoryCount, `${this.states.inventory.length}/10`);
-	updateElement(elements.liraTrust, this.states.lira_trust);
-	updateElement(elements.moralValue, this.states.moral);
-	updateElement(elements.goldValue, this.states.gold);
-	updateElement(elements.sanityValue, this.states.sanity);
-	updateElement(elements.fateValue, this.states.fate);
-	updateElement(elements.combatValue, this.states.combat_skill);
-	updateElement(elements.insightValue, this.states.insight);
-	updateElement(elements.churchHostility, this.states.church_hostility);
+    // Обновление текстовых значений
+    const updateText = (element, value) => {
+        if (element) element.textContent = value;
+    };
+
+    updateText(elements.healthValue, states.health);
+    updateText(elements.magicValue, states.magic);
+    updateText(elements.inventoryCount, `${states.inventory.length}/10`);
+    updateText(elements.liraTrust, states.lira_trust);
+    updateText(elements.moralValue, states.moral);
+    updateText(elements.goldValue, states.gold);
+    updateText(elements.sanityValue, states.sanity);
+    updateText(elements.fateValue, states.fate);
+    updateText(elements.combatValue, states.combat_skill);
+    updateText(elements.insightValue, states.insight);
+    updateText(elements.churchHostility, states.church_hostility);
 }
 
 export function showError(message) {
-    const errorBox = document.createElement('div');
-    errorBox.className = 'error-box';
-    errorBox.innerHTML = `
-        <h2>🛑 Ошибка</h2>
-        <p>${message}</p>
-        <button onclick="this.parentElement.remove()">Закрыть</button>
+    const errorHTML = `
+        <div class="error-box">
+            <h2>🛑 Ошибка</h2>
+            <p>${message}</p>
+            <button class="error-close-btn">Закрыть</button>
+        </div>
     `;
-    document.body.appendChild(errorBox);
+
+    const errorElement = document.createElement('div');
+    errorElement.innerHTML = errorHTML;
+    document.body.appendChild(errorElement);
+
+    errorElement.querySelector('.error-close-btn').addEventListener('click', () => {
+        errorElement.remove();
+    });
 }

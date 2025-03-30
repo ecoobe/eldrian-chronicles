@@ -34,7 +34,7 @@ export class ChoiceSystem {
     }
 
     handleChoice(choice) {
-        if (!choice.next) {
+        if (!choice?.next) {
             showError('Нет следующей главы');
             return;
         }
@@ -50,19 +50,31 @@ export class ChoiceSystem {
 
     applyEffects(effects) {
         Object.entries(effects).forEach(([key, value]) => {
-            if (key === 'fate') {
-                this.states.fate = Math.min(10, Math.max(0, this.states.fate + value));
-            } else if (key === 'sanity') {
-                this.states.sanity = Math.min(10, Math.max(0, this.states.sanity + value));
-            } else if (key === 'inventory_add') {
-                this.states.inventory.push(...[].concat(value));
-            } else if (key === 'inventory_remove') {
-                this.states.inventory = this.states.inventory.filter(item => ![].concat(value).includes(item));
-            } else if (this.states.hasOwnProperty(key)) {
-                this.states[key] = Math.max(0, this.states[key] + value);
+            const states = this.game.states;
+            
+            switch(key) {
+                case 'fate':
+                    states.fate = Math.clamp(states.fate + value, 0, 10);
+                    break;
+                case 'sanity':
+                    states.sanity = Math.clamp(states.sanity + value, 0, 10);
+                    break;
+                case 'inventory_add':
+                    states.inventory.push(...[].concat(value));
+                    break;
+                case 'inventory_remove':
+                    states.inventory = states.inventory.filter(item => 
+                        ![].concat(value).includes(item)
+                    );
+                    break;
+                default:
+                    if (states.hasOwnProperty(key)) {
+                        states[key] = Math.max(0, states[key] + value);
+                    }
             }
         });
-        this.updateStatsDisplay();
+        
+        updateStatsDisplay(this.game.states);
     }
 
     checkRequirements(requires) {
@@ -75,48 +87,69 @@ export class ChoiceSystem {
         }
 
         return Object.entries(requires).every(([key, value]) => {
+            const stateValue = this.game.states[key];
+            
             if (key.endsWith('_status')) {
-                return this.states[key] === value;
+                return stateValue === value;
             }
             
             if (typeof value === 'string' && value.includes('+')) {
-                return this.states[key] >= parseInt(value);
+                return stateValue >= parseInt(value);
             }
 
             if (key === 'revealed') {
-                return this.states.revealedChapters.includes(value);
+                return this.game.states.revealedChapters.includes(value);
             }
             
             if (key === 'not_revealed') {
-                return !this.states.revealedChapters.includes(value);
+                return !this.game.states.revealedChapters.includes(value);
             }
             
             if (typeof value === 'object') {
                 const operator = Object.keys(value)[0];
                 const compareValue = value[operator];
-                switch(operator) {
-                    case '<': return this.states[key] < compareValue;
-                    case '>': return this.states[key] > compareValue;
-                    case '=': return this.states[key] === compareValue;
-                    case '<=': return this.states[key] <= compareValue;
-                    case '>=': return this.states[key] >= compareValue;
-                }
+                return this.compareValues(stateValue, operator, compareValue);
             }
             
             if (key === 'inventory') {
-                return Array.isArray(value) 
-                    ? value.every(item => this.states.inventory.includes(item))
-                    : this.states.inventory.includes(value);
+                return this.checkInventoryCondition(value);
             }
             
             if (key === 'not_inventory') {
-                return Array.isArray(value)
-                    ? value.every(item => !this.states.inventory.includes(item))
-                    : !this.states.inventory.includes(value);
+                return !this.checkInventoryCondition(value);
             }
             
-            return this.states[key] >= value;
+            return stateValue >= value;
         });
+    }
+
+    parseCondition(condition) {
+        const match = condition.match(/(\w+)([<>=]+)(\d+)/);
+        if (!match) return false;
+        
+        const [_, key, op, value] = match;
+        return this.compareValues(
+            this.game.states[key], 
+            op, 
+            parseInt(value)
+        );
+    }
+
+    compareValues(a, operator, b) {
+        switch(operator) {
+            case '>=': return a >= b;
+            case '<=': return a <= b;
+            case '<': return a < b;
+            case '>': return a > b;
+            case '=': return a === b;
+            default: return false;
+        }
+    }
+
+    checkInventoryCondition(value) {
+        return Array.isArray(value)
+            ? value.every(item => this.game.states.inventory.includes(item))
+            : this.game.states.inventory.includes(value);
     }
 
     showAutoContinue(container) {
@@ -129,5 +162,12 @@ export class ChoiceSystem {
 
     getNextChapter() {
         return this.game.currentChapterData?.default_next || 'chapter2';
+    }
+
+    revealChapter(chapterId) {
+        if (!this.game.states.revealedChapters.includes(chapterId)) {
+            this.game.states.revealedChapters.push(chapterId);
+        }
+        this.game.loadChapter(chapterId);
     }
 }

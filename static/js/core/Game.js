@@ -5,7 +5,19 @@ import { loadBackground, updateStatsDisplay, showError } from '../utils/helpers.
 
 export class Game {
     constructor() {
-        this.states = {
+        this.states = this.initialGameState();
+        this.systems = this.initializeSystems();
+        this.currentChapterData = null;
+        this.choiceTimers = new Map();
+        this.preloadConfig = {
+            backgrounds: ['main_menu.webp', 'village_doomsday.webp']
+        };
+        
+        this.preloadBackgrounds();
+    }
+
+    initialGameState() {
+        return {
             currentChapter: 'chapter1',
             magic: 0,
             lira_trust: 0,
@@ -26,68 +38,90 @@ export class Game {
             combat_skill: 0,
             insight: 0
         };
+    }
 
-        this.systems = {
+    initializeSystems() {
+        return {
             magic: new MagicSystem(this),
             spell: new SpellSystem(this),
             choice: new ChoiceSystem(this)
         };
-
-        this.currentChapterData = null;
-        this.choiceTimers = new Map();
-        this.preloadBackgrounds();
     }
 
     async loadChapter(chapterId) {
         try {
-            const path = chapterId.startsWith('ending_') 
-                ? `/endings/${chapterId}.json` 
-                : `/chapters/${chapterId}.json`;
-
+            const path = this.getChapterPath(chapterId);
             const response = await fetch(`${path}?t=${Date.now()}`);
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
             
             this.currentChapterData = await response.json();
+            this.validateChapterData();
+            
             this.states.currentChapter = chapterId;
             await this.renderChapter();
         } catch (error) {
-            showError(`Ошибка загрузки: ${error.message}`);
+            this.handleLoadingError(error);
             throw error;
         }
     }
 
-    async renderChapter() {
-        const textDisplay = document.getElementById('text-display');
-        const choicesBox = document.getElementById('choices');
-
-        // Сброс состояния
-        this.clearChoiceTimers();
-        
-        // Загрузка фона
-        await loadBackground(this.currentChapterData?.background);
-
-        // Отображение текста
-        textDisplay.innerHTML = '<div class="text-content"></div>';
-        await this.typewriterEffect(this.currentChapterData.text);
-
-        // Обработка выбора
-        this.systems.choice.showChoices(
-            this.currentChapterData.choices || [],
-            choicesBox
-        );
-
-        updateStatsDisplay(this.states);
+    getChapterPath(chapterId) {
+        return chapterId.startsWith('ending_') 
+            ? `/endings/${chapterId}.json` 
+            : `/chapters/${chapterId}.json`;
     }
 
-    typewriterEffect(text) {
+    validateChapterData() {
+        if (!this.currentChapterData) {
+            throw new Error('Не удалось загрузить данные главы');
+        }
+        
+        if (!this.currentChapterData.text) {
+            throw new Error('Глава не содержит текста');
+        }
+    }
+
+    handleLoadingError(error) {
+        console.error('Ошибка загрузки:', error);
+        showError(`Ошибка загрузки: ${error.message}`);
+        document.getElementById('main-menu')?.classList.remove('hidden');
+        document.getElementById('game-container')?.classList.add('hidden');
+    }
+
+    async renderChapter() {
+        try {
+            const textDisplay = document.getElementById('text-display');
+            const choicesBox = document.getElementById('choices');
+
+            this.clearChoiceTimers();
+            await this.loadBackground(this.currentChapterData.background);
+            
+            textDisplay.innerHTML = '<div class="text-content"></div>';
+            await this.typewriterEffect(this.currentChapterData.text);
+            
+            this.systems.choice.showChoices(
+                this.currentChapterData.choices || [],
+                choicesBox
+            );
+            
+            updateStatsDisplay(this.states);
+        } catch (error) {
+            this.handleRenderingError(error);
+        }
+    }
+
+    async typewriterEffect(text) {
         return new Promise(resolve => {
             const contentDiv = document.querySelector('#text-display .text-content');
             let index = 0;
             
             const animate = () => {
                 if (index < text.length) {
-                    contentDiv.innerHTML = text.substring(0, index + 1) + 
-                        '<span class="typewriter-cursor">|</span>';
+                    contentDiv.innerHTML = `${text.substring(0, index + 1)}
+                        <span class="typewriter-cursor">|</span>`;
                     index++;
                     setTimeout(animate, 30 + Math.random() * 20);
                 } else {
@@ -95,8 +129,15 @@ export class Game {
                     resolve();
                 }
             };
+            
             animate();
         });
+    }
+
+    handleRenderingError(error) {
+        console.error('Ошибка рендеринга:', error);
+        showError(`Ошибка отображения главы: ${error.message}`);
+        this.loadChapter('chapter1').catch(console.error);
     }
 
     clearChoiceTimers() {
@@ -105,7 +146,7 @@ export class Game {
     }
 
     preloadBackgrounds() {
-        ['main_menu.webp', 'village_doomsday.webp'].forEach(bg => {
+        this.preloadConfig.backgrounds.forEach(bg => {
             new Image().src = `/backgrounds/${bg}`;
         });
     }
