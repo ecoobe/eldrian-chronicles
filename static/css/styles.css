@@ -1,3 +1,4 @@
+/* Основные переменные и базовые стили */
 :root {
     --primary-dark: #2a1e24;
     --secondary-dark: #3c2b2f;
@@ -7,25 +8,33 @@
     --accent-purple: #8a5a8c;
     --text-primary: #e8e1d7;
     --danger-red: #8b0000;
+    --transition-base: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
-    padding: 0;
     height: 100vh;
     overflow: hidden;
     font-family: 'MedievalSharp', cursive;
     color: var(--text-primary);
     background: var(--primary-dark);
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
 }
 
-/* Главное меню */
+/* Главное меню с улучшенной анимацией */
 .main-menu {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
                 url('/backgrounds/main_menu.webp') center/cover;
     display: flex;
@@ -33,10 +42,23 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    opacity: 1;
+    perspective: 1000px; /* Добавлено для 3D-эффектов */
+    transition: 
+        opacity 0.8s var(--transition-base), 
+        visibility 0.8s var(--transition-base),
+        transform 0.8s var(--transition-base); /* Добавлен transform */
+}
+
+
+.main-menu.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .main-btn {
-    background: linear-gradient(to bottom, var(--accent-copper), #9a5b40);
+    background: linear-gradient(145deg, var(--accent-copper) 20%, #9a5b40 80%);
     border: none;
     padding: 15px 40px;
     margin: 10px;
@@ -44,15 +66,16 @@ body {
     color: white;
     border-radius: 30px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
     text-transform: uppercase;
     letter-spacing: 1px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transform-style: preserve-3d;
 }
 
-.main-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+.main-btn:hover:not(:disabled) {
+    transform: translateY(-3px) rotateX(15deg);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 .main-btn:disabled {
@@ -61,7 +84,7 @@ body {
     filter: grayscale(50%);
 }
 
-/* Игровой контейнер */
+/* Игровой контейнер с анимацией перехода */
 #game-container {
     position: fixed;
     top: 0;
@@ -71,20 +94,46 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    transition: background-image 2s ease-in-out, opacity 1.2s ease !important;
+    opacity: 1;
     z-index: 1;
+    will-change: transform, opacity; /* Оптимизация рендеринга */
+    transition: 
+        background-image 1.2s var(--transition-base),
+        opacity 0.8s var(--transition-base),
+        transform 1.2s var(--transition-base),
+        filter 0.6s var(--transition-base); /* Добавлен фильтр */
+    transform: translateZ(0);
+    filter: brightness(1); /* Для будущих эффектов */
 }
 
 #game-container.changing-bg {
     opacity: 0.3;
+    transform: translateX(-5%) scale(0.98);
 }
 
-/* Панель статистики */
+#game-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.2);
+    z-index: -1;
+    transition: opacity 1.2s var(--transition-base);
+}
+
+/* Улучшенная панель статистики */
 .stats-container {
     position: fixed;
     top: 20px;
     left: 20px;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.85) 
+                linear-gradient(
+                    to bottom, 
+                    rgba(255,255,255,0.1) 0%, 
+                    rgba(0,0,0,0.5) 100%
+                ); /* Градиентный фолбэк */
     padding: 15px;
     border-radius: 8px;
     border: 1px solid var(--accent-copper);
@@ -92,12 +141,17 @@ body {
     min-width: 240px;
     backdrop-filter: blur(3px);
     pointer-events: none;
-    transition: transform 0.6s ease-out;
-    max-width: 90%;
+    transition: 
+        transform 0.6s var(--transition-base),
+        opacity 0.4s var(--transition-base),
+        backdrop-filter 0.4s ease; /* Анимация размытия */
+    transform: translateY(0);
+    contain: content; /* Оптимизация перерисовки */
 }
 
-.stats-box {
-    margin-bottom: 15px;
+.stats-container.hidden {
+    transform: translateY(-20px);
+    opacity: 0;
 }
 
 .stat-grid {
@@ -108,31 +162,18 @@ body {
 }
 
 .stat-item {
-    margin: 8px 0;
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 14px;
-    color: var(--text-primary);
     padding: 5px;
     border-left: 3px solid transparent;
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
 }
 
 .stat-item.highlight {
     background: rgba(255, 215, 0, 0.2);
     border-left: 3px solid gold;
-}
-
-.stat-item.danger {
-    color: #ff9999;
-}
-
-.faction-status {
-    font-size: 0.9em;
-    color: #aaa;
-    margin-top: 3px;
-    font-style: italic;
 }
 
 .progress-bar {
@@ -147,10 +188,10 @@ body {
 .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--accent-copper), #a05e45);
-    transition: width 0.5s ease-in-out;
+    transition: width 0.8s var(--transition-base);
 }
 
-/* Текстовые блоки */
+/* Текстовый блок с улучшенной анимацией */
 .text-box {
     position: fixed;
     bottom: 200px;
@@ -166,9 +207,18 @@ body {
     backdrop-filter: blur(5px);
     min-height: 120px;
     line-height: 1.6;
-    transition: opacity 0.8s ease;
+    opacity: 1;
+    transition: 
+        opacity 0.8s var(--transition-base),
+        transform 0.8s var(--transition-base);
 }
 
+.text-box.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+}
+
+/* Блок выбора с улучшенными анимациями */
 .choices-box {
     position: fixed;
     bottom: 50px;
@@ -180,6 +230,7 @@ body {
     flex-direction: column;
     gap: 12px;
     z-index: 1000;
+    transition: all var(--transition-base);
 }
 
 .choice-btn {
@@ -189,124 +240,41 @@ body {
     padding: 14px 24px;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.5s ease !important;
+    transition: all var(--transition-base);
     font-size: 1.1em;
     opacity: 0;
+    transform: translateY(20px);
     position: relative;
     overflow: hidden;
 }
 
+.choice-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .choice-btn:hover:not(:disabled) {
     background: var(--accent-blue);
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
 }
 
-.choice-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    filter: grayscale(80%);
+/* Анимации переходов */
+@keyframes locationSlideIn {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
 }
 
-/* Специальные типы кнопок */
-.choice-btn[data-danger="true"] {
-    background: linear-gradient(45deg, var(--danger-red), #4a0000);
-    border-color: #ff4444;
+@keyframes locationSlideOut {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(-100%); opacity: 0; }
 }
 
-.choice-btn[data-secret="true"]::after {
-    content: '???';
-    margin-left: 10px;
-    color: var(--accent-copper);
+.location-transition-enter {
+    animation: locationSlideIn 1.2s var(--transition-base) forwards;
 }
 
-.choice-btn[data-hidden="true"] {
-    opacity: 0.5;
-    border: 1px dashed var(--accent-copper);
-    animation: pulseHidden 2s infinite;
-}
-
-.choice-btn[data-timer]::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: var(--accent-copper);
-    animation: timerBar linear forwards;
-}
-
-.choice-btn[data-puzzle] {
-    background: repeating-linear-gradient(
-        45deg,
-        rgba(200,127,90,0.1),
-        rgba(200,127,90,0.1) 10px,
-        transparent 10px,
-        transparent 20px
-    );
-}
-
-.choice-btn[data-qte]::before {
-    content: '⚠';
-    margin-right: 10px;
-    color: #ff4444;
-    animation: pulseDanger 1s infinite;
-}
-
-.choice-btn[data-spell] {
-    background: rgba(93, 138, 168, 0.2);
-    border: 1px solid var(--accent-blue);
-}
-
-.choice-btn[data-faction="forest"] {
-    background: rgba(90, 140, 90, 0.2);
-    border: 1px solid var(--accent-green);
-}
-
-.choice-btn[data-faction="church"] {
-    background: rgba(168, 93, 93, 0.2);
-    border: 1px solid #a85d5d;
-}
-
-/* Анимации */
-@keyframes blink {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
-}
-
-@keyframes pulseHidden {
-    0% { opacity: 0.3; }
-    50% { opacity: 0.6; }
-    100% { opacity: 0.3; }
-}
-
-@keyframes timerBar {
-    from { width: 100%; }
-    to { width: 0%; }
-}
-
-@keyframes pulseDanger {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
-}
-
-.typewriter-cursor::after {
-    content: '|';
-    animation: blink 1.5s infinite;
-    color: var(--accent-copper);
-    font-weight: bold;
-}
-
-/* Эффекты и модальные окна */
-.effects-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 500;
+.location-transition-exit {
+    animation: locationSlideOut 1.2s var(--transition-base) forwards;
 }
 
 .modal {
@@ -400,91 +368,46 @@ body {
 /* Адаптивность */
 @media (max-width: 768px) {
     .stats-container {
-        width: auto;
-        max-width: 80%;
+        top: 10px;
+        left: 10px;
         padding: 10px;
+        max-width: 80%;
     }
-    
-    .stat-grid {
-        grid-template-columns: 1fr;
-    }
-    
+
     .text-box {
         width: 95%;
         bottom: 160px;
-        font-size: 0.9em;
         padding: 15px;
+        font-size: 0.9em;
     }
-    
+
     .choices-box {
         width: 95%;
         bottom: 20px;
     }
-    
-    .ending-box {
-        padding: 1rem;
+}
+
+@media (hover: none) {
+    .main-btn:hover {
+        transform: none !important; /* Отключаем 3D-эффекты на мобильных */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
     }
     
-    .ending-box h2 {
-        font-size: 1.8em;
+    .stats-container {
+        backdrop-filter: none; /* Фолбэк для старых устройств */
+        background: rgba(0,0,0,0.95); /* Увеличиваем прозрачность */
     }
 }
 
-/* Спецэффекты */
-.reality-tear {
-    animation: realityTear 3s infinite;
-    mix-blend-mode: exclusion;
-}
-
-@keyframes realityTear {
-    0% { filter: hue-rotate(0deg); }
-    50% { 
-        filter: hue-rotate(180deg) blur(10px); 
-        transform: skew(45deg);
-    }
-    100% { 
-        filter: hue-rotate(360deg); 
-        transform: skew(-0.1deg);
-    }
-}
-
-.forest-animation {
-    animation: 
-        pulse 5s infinite,
-        wind 30s linear infinite;
-}
-
-.spell-effect {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    animation: spellCast 2s forwards;
-}
-
-.spell-choices-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.spell-choice {
-    background: rgba(50, 50, 50, 0.7);
-    border: 1px solid var(--accent-blue);
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.spell-choice:hover {
-    background: rgba(93, 138, 168, 0.3);
-    transform: translateY(-2px);
-}
-
+/* Дополнительные анимации */
 @keyframes spellCast {
     0% { opacity: 0; transform: scale(0.5); }
     50% { opacity: 1; transform: scale(1.2); }
     100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes realityTear {
+    0% { filter: hue-rotate(0deg); }
+    50% { filter: hue-rotate(180deg) blur(10px); transform: skew(45deg); }
+    100% { filter: hue-rotate(360deg); transform: skew(-0.1deg); }
 }

@@ -199,46 +199,45 @@ class Game {
 	}
 
     async renderChapter(data) {
-		if (!data) {
-			console.error("Нет данных для рендеринга");
-			return;
-		}
-	
-		console.log("[DEBUG] Начало рендеринга главы");
+		console.log("[RENDER] Начало рендеринга");
 		const textDisplay = document.getElementById('text-display');
 		const choicesBox = document.getElementById('choices');
 		
-		if (!textDisplay || !choicesBox) {
-			console.error("Элементы для отображения не найдены");
-			return;
-		}
-	
-		// Очистка
-		textDisplay.innerHTML = '';
-		choicesBox.innerHTML = '';
+		// Принудительное отображение элементов
+		textDisplay.style.display = 'block';
+		choicesBox.style.display = 'flex';
+		textDisplay.innerHTML = '<div class="text-content"></div>';
+		
+		// Очистка предыдущего состояния
 		this.clearChoiceTimers();
+		cancelAnimationFrame(currentAnimationFrame);
 	
-		// Выбор варианта контента
-		let content = data;
-		if (data.variants) {
-			content = data.variants.find(v => this.checkVariantConditions(v)) || data;
+		// Проверка данных
+		if (!data || !data.text) {
+			console.error("Некорректные данные главы:", data);
+			return;
 		}
 	
 		// Загрузка фона
 		try {
-			await this.startBgTransition(content);
+			await this.loadBackground(data.background);
 		} catch (error) {
 			console.error("Ошибка фона:", error);
 		}
 	
-		// Показ текста
-		await this.typewriterEffect(content.text);
-		
-		// Показ выбора
-		this.showChoicesWithDelay(content.choices || []);
+		// Отображение текста
+		const textContent = textDisplay.querySelector('.text-content');
+		await this.typewriterEffect(data.text, textContent);
+	
+		// Отображение выбора
+		if (data.choices && data.choices.length > 0) {
+			this.showChoicesWithDelay(data.choices);
+		} else {
+			console.warn("Нет доступных выборов");
+		}
+	
 		this.updateStatsDisplay();
-		
-		console.log("[DEBUG] Рендеринг главы завершен");
+		console.log("[RENDER] Рендеринг завершен");
 	}
 
     clearChoiceTimers() {
@@ -305,35 +304,30 @@ class Game {
     }
 
     async typewriterEffect(text) {
-        const textDisplay = document.getElementById('text-display');
-        textDisplay.innerHTML = '<span class="typewriter-cursor"></span>';
-        let index = 0;
-        let lastUpdate = 0;
-        const SPEED_PER_CHAR = 60;
-
-        return new Promise((resolve) => {
-            const animate = (timestamp) => {
-                if (!lastUpdate) lastUpdate = timestamp;
-                const delta = timestamp - lastUpdate;
-                
-                if (delta >= SPEED_PER_CHAR && index < text.length) {
-                    textDisplay.insertBefore(
-                        document.createTextNode(text[index]), 
-                        textDisplay.lastChild
-                    );
-                    index++;
-                    lastUpdate = timestamp;
-                }
-                
-                if (index < text.length) {
-                    currentAnimationFrame = requestAnimationFrame(animate);
-                } else {
-                    resolve();
-                }
-            };
-            currentAnimationFrame = requestAnimationFrame(animate);
-        });
-    }
+		const textDisplay = document.getElementById('text-display');
+		// Очищаем и устанавливаем минимальную высоту
+		textDisplay.innerHTML = '<div class="text-content" style="min-height: 100px;"></div>';
+		const contentDiv = textDisplay.querySelector('.text-content');
+		
+		let index = 0;
+		const SPEED_PER_MS = 30; // Скорость печати (меньше = быстрее)
+		const cursor = '<span class="typewriter-cursor">|</span>';
+		
+		return new Promise((resolve) => {
+			const animate = () => {
+				if (index < text.length) {
+					// Добавляем по одному символу + курсор
+					contentDiv.innerHTML = text.substring(0, index + 1) + cursor;
+					index++;
+					setTimeout(animate, SPEED_PER_MS + Math.random() * 20); // Случайные задержки для естественности
+				} else {
+					contentDiv.innerHTML = text; // Убираем курсор в конце
+					resolve();
+				}
+			};
+			animate();
+		});
+	}
 
     showChoicesWithDelay(choices) {
         const visibleChoices = choices.filter(choice => {
@@ -636,6 +630,14 @@ const spellSystem = new SpellSystem(game);
 
 function initGame() {
     console.log("[DEBUG] Инициализация игры...");
+
+	setTimeout(() => {
+		console.log("Проверка видимости:",
+			document.getElementById('game-container').style.display,
+			document.getElementById('text-display').style.opacity,
+			window.getComputedStyle(document.getElementById('game-container')).getPropertyValue('opacity')
+		);
+	}, 1000);
     
     // Блокируем кнопку на время загрузки
     const startBtn = document.getElementById('start-game-btn');
