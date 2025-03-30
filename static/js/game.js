@@ -68,6 +68,12 @@ class SpellSystem {
     }
 
     showSpells(spells) {
+		// Проверяем что spells - объект и не пустой
+		if (!spells || typeof spells !== 'object' || Object.keys(spells).length === 0) {
+			this.closeModal();
+			return;
+		}
+
         this.spellChoices.innerHTML = '';
         
         Object.entries(spells).forEach(([spellName, spellData]) => {
@@ -91,6 +97,7 @@ class SpellSystem {
     }
 
     closeModal() {
+		console.log('Closing spell modal');
         this.modal.classList.add('hidden');
     }
 }
@@ -190,6 +197,7 @@ class Game {
         textDisplay.innerHTML = '';
         choicesBox.innerHTML = '';
         this.clearChoiceTimers();
+		spellSystem.closeModal();
 
         let content = data;
         if (data.variants) {
@@ -203,9 +211,9 @@ class Game {
         this.updateFactionAI();
         this.updateEcosystem();
 
-        if (data.spells && Object.keys(data.spells).length > 0) {
-            spellSystem.showSpells(data.spells);
-        }
+        if (content.spells && Object.keys(content.spells).length > 0) {
+			spellSystem.showSpells(content.spells);
+		}
     }
 
     clearChoiceTimers() {
@@ -601,6 +609,7 @@ const spellSystem = new SpellSystem(game);
 function initGame() {
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('game-container').classList.remove('hidden');
+    spellSystem.closeModal(); // Закрываем окно при старте
     
     game.states = {
         magic: 0,

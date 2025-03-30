@@ -331,6 +331,10 @@ body {
     border: 2px solid var(--accent-copper);
 }
 
+.modal.hidden {
+    display: none !important;
+}
+
 .close-btn {
     background: var(--danger-red);
     color: white;
