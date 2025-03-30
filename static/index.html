@@ -6,15 +6,18 @@
     <meta http-equiv="Content-Security-Policy" 
           content="default-src 'self'; 
                    script-src 'self' https://fonts.googleapis.com; 
-                   style-src 'self' https://fonts.googleapis.com;
-                   img-src 'self' data:;">
+                   style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+                   img-src 'self' data: https://fonts.gstatic.com;
+                   font-src 'self' https://fonts.gstatic.com;
+                   connect-src 'self'">
     <title>Хроники Элдриана</title>
     
     <!-- Предзагрузка основных ресурсов -->
-    <link rel="preload" href="/backgrounds/main_menu.webp" as="image">
-    <link rel="preload" href="/backgrounds/village_doomsday.webp" as="image">
+    <link rel="preload" href="/backgrounds/main_menu.webp" as="image" fetchpriority="high">
     
     <!-- Стили -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
