@@ -326,4 +326,35 @@ body {
 		color: #ff4444;
 		animation: pulseDanger 1s infinite;
 	}
+
+/* Анимация разлома реальности */
+@keyframes realityTear {
+    0% { filter: hue-rotate(0deg); }
+    50% { 
+        filter: hue-rotate(180deg) blur(10px); 
+        transform: skew(45deg);
+    }
+    100% { 
+        filter: hue-rotate(360deg); 
+        transform: skew(-0.1deg);
+    }
+}
+
+.void-effect {
+    animation: realityTear 3s infinite;
+    mix-blend-mode: exclusion;
+    }
+
+/* Стили для живого леса */
+.forest-background {
+    transition: filter 2s;
+    filter: sepia(var(--corruption-level)) 
+            hue-rotate(calc(var(--moon-phase) * 10deg));
+    }
+
+.dynamic-foliage {
+    animation: 
+        pulse 5s infinite,
+        wind calc(30s + (var(--wind-strength) * 10s)) linear infinite;
+    }
 }
