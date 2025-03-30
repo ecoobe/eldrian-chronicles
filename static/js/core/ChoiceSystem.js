@@ -3,78 +3,189 @@ import { showError, updateStatsDisplay } from '../utils/helpers.js';
 export class ChoiceSystem {
     constructor(game) {
         this.game = game;
+        this.activeChoices = new Set();
     }
 
     showChoices(choices, container) {
-        container.innerHTML = '';
-        const visibleChoices = choices.filter(choice => 
-            this.checkRequirements(choice.requires || {})
-        );
-
-        if (visibleChoices.length === 0) {
-            this.showAutoContinue(container);
-            return;
-        }
-
-        visibleChoices.forEach((choice, i) => {
-            const btn = this.createButton(choice);
-            setTimeout(() => btn.classList.add('visible'), i * 100);
-            container.appendChild(btn);
-        });
-    }
-
-    createButton(choice) {
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn';
-        btn.textContent = choice.text;
-        btn.dataset.choiceId = choice.id || Math.random().toString(36).slice(2, 9);
-        
-        btn.addEventListener('click', () => this.handleChoice(choice));
-        return btn;
-    }
-
-    handleChoice(choice) {
-        if (!choice?.next) {
-            showError('Нет следующей главы');
-            return;
-        }
-
-        this.applyEffects(choice.effects || {});
-
-        if (choice.next === 'reveal_chapter') {
-            this.revealChapter(choice.reveal);
-        } else {
-            this.game.loadChapter(choice.next);
-        }
-    }
-
-    applyEffects(effects) {
-        Object.entries(effects).forEach(([key, value]) => {
-            const states = this.game.states;
+        try {
+            this.validateContainer(container);
+            this.clearPreviousChoices();
             
-            switch(key) {
-                case 'fate':
-                    states.fate = Math.clamp(states.fate + value, 0, 10);
-                    break;
-                case 'sanity':
-                    states.sanity = Math.clamp(states.sanity + value, 0, 10);
-                    break;
-                case 'inventory_add':
-                    states.inventory.push(...[].concat(value));
-                    break;
-                case 'inventory_remove':
-                    states.inventory = states.inventory.filter(item => 
-                        ![].concat(value).includes(item)
-                    );
-                    break;
-                default:
-                    if (states.hasOwnProperty(key)) {
-                        states[key] = Math.max(0, states[key] + value);
-                    }
+            const filteredChoices = this.filterAvailableChoices(choices);
+            
+            if (filteredChoices.length === 0) {
+                this.showFallbackChoice(container);
+                return;
             }
+
+            this.renderChoices(filteredChoices, container);
+        } catch (error) {
+            this.handleChoiceError(error, container);
+        }
+    }
+
+    validateContainer(container) {
+        if (!(container instanceof HTMLElement)) {
+            throw new Error('Invalid choices container element');
+        }
+    }
+
+    clearPreviousChoices() {
+        this.activeChoices.forEach(choice => {
+            choice.button.removeEventListener('click', choice.handler);
         });
+        this.activeChoices.clear();
+    }
+
+    filterAvailableChoices(choices) {
+        return choices.filter(choice => 
+            this.checkRequirements(choice.requirements || {}) &&
+            this.validateChoiceStructure(choice)
+        );
+    }
+
+    validateChoiceStructure(choice) {
+        const isValid = Boolean(
+            choice.text &&
+            (choice.next || choice.reveal || choice.effects)
+        );
         
+        if (!isValid) {
+            console.warn('Invalid choice structure:', choice);
+        }
+        return isValid;
+    }
+
+    renderChoices(choices, container) {
+        choices.forEach((choice, index) => {
+            const button = this.createChoiceButton(choice);
+            this.animateButtonAppearance(button, index);
+            container.appendChild(button);
+            this.registerChoice(choice, button);
+        });
+    }
+
+    createChoiceButton(choice) {
+        const button = document.createElement('button');
+        button.className = 'choice-btn';
+        button.textContent = choice.text;
+        button.dataset.choiceId = choice.id || crypto.randomUUID();
+        return button;
+    }
+
+    animateButtonAppearance(button, index) {
+        requestAnimationFrame(() => {
+            button.style.transitionDelay = `${index * 100}ms`;
+            button.classList.add('visible');
+        });
+    }
+
+    registerChoice(choice, button) {
+        const handler = () => this.processChoice(choice);
+        button.addEventListener('click', handler);
+        this.activeChoices.add({ button, handler });
+    }
+
+    async processChoice(choice) {
+        try {
+            this.applyChoiceEffects(choice.effects);
+            await this.handleChoiceOutcome(choice);
+        } catch (error) {
+            showError(`Choice processing failed: ${error.message}`);
+        }
+    }
+
+    applyChoiceEffects(effects = {}) {
+        Object.entries(effects).forEach(([key, value]) => {
+            this.updateGameState(key, value);
+        });
         updateStatsDisplay(this.game.states);
+    }
+
+    updateGameState(key, value) {
+        const state = this.game.states;
+        const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+        
+        switch(key) {
+            case 'health':
+                state.health = clamp(state.health + value, 0, 100);
+                break;
+            case 'sanity':
+            case 'fate':
+                state[key] = clamp(state[key] + value, 0, 10);
+                break;
+            case 'inventory':
+                this.handleInventoryOperation(value);
+                break;
+            default:
+                if (state.hasOwnProperty(key)) {
+                    state[key] = Math.max(state[key] + value, 0);
+                }
+        }
+    }
+
+    handleInventoryOperation(operation) {
+        const { action, items } = operation;
+        const inventory = this.game.states.inventory;
+        
+        if (!Array.isArray(items)) {
+            throw new Error('Inventory items must be an array');
+        }
+
+        switch(action) {
+            case 'add':
+                items.forEach(item => {
+                    if (!inventory.includes(item)) inventory.push(item);
+                });
+                break;
+            case 'remove':
+                this.game.states.inventory = inventory.filter(
+                    item => !items.includes(item)
+                );
+                break;
+            default:
+                throw new Error(`Invalid inventory action: ${action}`);
+        }
+    }
+
+    async handleChoiceOutcome(choice) {
+        if (choice.reveal) {
+            await this.revealChapter(choice.reveal);
+        } else if (choice.next) {
+            await this.game.loadChapter(choice.next);
+        } else {
+            throw new Error('Choice has no valid outcome');
+        }
+    }
+
+    async revealChapter(chapterId) {
+        if (!this.game.states.revealedChapters.includes(chapterId)) {
+            this.game.states.revealedChapters.push(chapterId);
+        }
+        await this.game.loadChapter(chapterId);
+    }
+
+    showFallbackChoice(container) {
+        const button = document.createElement('button');
+        button.className = 'choice-btn visible';
+        button.textContent = 'Continue...';
+        button.addEventListener('click', () => 
+            this.game.loadChapter(this.getDefaultNextChapter())
+        );
+        container.appendChild(button);
+    }
+
+    getDefaultNextChapter() {
+        return this.game.currentChapterData?.default_next || 'chapter1';
+    }
+
+    handleChoiceError(error, container) {
+        console.error('Choice system error:', error);
+        container.innerHTML = `<div class="error">${error.message}</div>`;
+        setTimeout(() => {
+            container.innerHTML = '';
+            this.game.loadChapter('chapter1');
+        }, 2000);
     }
 
     checkRequirements(requires) {
@@ -121,53 +232,5 @@ export class ChoiceSystem {
             
             return stateValue >= value;
         });
-    }
-
-    parseCondition(condition) {
-        const match = condition.match(/(\w+)([<>=]+)(\d+)/);
-        if (!match) return false;
-        
-        const [_, key, op, value] = match;
-        return this.compareValues(
-            this.game.states[key], 
-            op, 
-            parseInt(value)
-        );
-    }
-
-    compareValues(a, operator, b) {
-        switch(operator) {
-            case '>=': return a >= b;
-            case '<=': return a <= b;
-            case '<': return a < b;
-            case '>': return a > b;
-            case '=': return a === b;
-            default: return false;
-        }
-    }
-
-    checkInventoryCondition(value) {
-        return Array.isArray(value)
-            ? value.every(item => this.game.states.inventory.includes(item))
-            : this.game.states.inventory.includes(value);
-    }
-
-    showAutoContinue(container) {
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn visible';
-        btn.textContent = 'Продолжить...';
-        btn.onclick = () => this.game.loadChapter(this.getNextChapter());
-        container.appendChild(btn);
-    }
-
-    getNextChapter() {
-        return this.game.currentChapterData?.default_next || 'chapter2';
-    }
-
-    revealChapter(chapterId) {
-        if (!this.game.states.revealedChapters.includes(chapterId)) {
-            this.game.states.revealedChapters.push(chapterId);
-        }
-        this.game.loadChapter(chapterId);
     }
 }

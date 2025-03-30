@@ -24,5 +24,6 @@ function initGame() {
 
 document.getElementById('start-game-btn').addEventListener('click', initGame);
 document.getElementById('endings-btn').addEventListener('click', () => {
-    // Реализация галереи концовок
+    // Галерея концовок будет реализована позже
+    console.log('Endings gallery not implemented yet');
 });

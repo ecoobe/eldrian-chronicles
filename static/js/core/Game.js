@@ -64,7 +64,6 @@ export class Game {
             await this.renderChapter();
         } catch (error) {
             this.handleLoadingError(error);
-            throw error;
         }
     }
 
@@ -75,18 +74,21 @@ export class Game {
     }
 
     validateChapterData() {
+        const requiredFields = ['id', 'text', 'background'];
+        
         if (!this.currentChapterData) {
-            throw new Error('Не удалось загрузить данные главы');
+            throw new Error('Chapter data is empty');
         }
         
-        if (!this.currentChapterData.text) {
-            throw new Error('Глава не содержит текста');
+        const missingFields = requiredFields.filter(field => !(field in this.currentChapterData));
+        if (missingFields.length > 0) {
+            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
         }
     }
 
     handleLoadingError(error) {
-        console.error('Ошибка загрузки:', error);
-        showError(`Ошибка загрузки: ${error.message}`);
+        console.error('Loading error:', error);
+        showError(`Loading failed: ${error.message}`);
         document.getElementById('main-menu')?.classList.remove('hidden');
         document.getElementById('game-container')?.classList.add('hidden');
     }
@@ -97,7 +99,7 @@ export class Game {
             const choicesBox = document.getElementById('choices');
 
             this.clearChoiceTimers();
-            await this.loadBackground(this.currentChapterData.background);
+            await loadBackground(this.currentChapterData.background);
             
             textDisplay.innerHTML = '<div class="text-content"></div>';
             await this.typewriterEffect(this.currentChapterData.text);
@@ -117,26 +119,31 @@ export class Game {
         return new Promise(resolve => {
             const contentDiv = document.querySelector('#text-display .text-content');
             let index = 0;
+            let lastUpdate = 0;
             
-            const animate = () => {
-                if (index < text.length) {
-                    contentDiv.innerHTML = `${text.substring(0, index + 1)}
-                        <span class="typewriter-cursor">|</span>`;
-                    index++;
-                    setTimeout(animate, 30 + Math.random() * 20);
-                } else {
-                    contentDiv.innerHTML = text;
+            const animate = (timestamp) => {
+                if (index >= text.length) {
+                    contentDiv.textContent = text;
                     resolve();
+                    return;
                 }
+
+                if (timestamp - lastUpdate > 30) {
+                    contentDiv.textContent = text.substring(0, index + 1);
+                    index++;
+                    lastUpdate = timestamp;
+                }
+
+                requestAnimationFrame(animate);
             };
-            
-            animate();
+
+            requestAnimationFrame(animate);
         });
     }
 
     handleRenderingError(error) {
-        console.error('Ошибка рендеринга:', error);
-        showError(`Ошибка отображения главы: ${error.message}`);
+        console.error('Rendering error:', error);
+        showError(`Rendering error: ${error.message}`);
         this.loadChapter('chapter1').catch(console.error);
     }
 
@@ -147,7 +154,9 @@ export class Game {
 
     preloadBackgrounds() {
         this.preloadConfig.backgrounds.forEach(bg => {
-            new Image().src = `/backgrounds/${bg}`;
+            const img = new Image();
+            img.onerror = () => console.error(`Failed to preload background: ${bg}`);
+            img.src = `/backgrounds/${bg}`;
         });
     }
 }

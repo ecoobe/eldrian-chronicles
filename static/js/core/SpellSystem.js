@@ -1,83 +1,114 @@
 export class SpellSystem {
     constructor(game) {
         this.game = game;
-        this.modal = document.getElementById('spell-modal');
-        this.spellChoices = document.getElementById('spell-choices');
-        this.closeButton = document.getElementById('close-spell-modal');
-        this.initModal();
+        this.modalElements = this.validateModalElements();
+        this.registerEventHandlers();
     }
 
-    initModal() {
-        if (!this.modal || !this.closeButton) {
-            console.error('Spell modal elements not found');
-            return;
-        }
+    validateModalElements() {
+        const elements = {
+            modal: document.getElementById('spell-modal'),
+            choices: document.getElementById('spell-choices'),
+            closeButton: document.getElementById('close-spell-modal')
+        };
 
-        this.modal.addEventListener('click', (e) => {
-            if (e.target === this.modal) this.closeModal();
+        Object.entries(elements).forEach(([name, element]) => {
+            if (!element) {
+                throw new Error(`Missing required spell modal element: ${name}`);
+            }
         });
-        
-        this.closeButton.addEventListener('click', () => this.closeModal());
+
+        return elements;
     }
 
-    showSpells(spells) {
-        if (!this.validateSpells(spells)) return;
+    registerEventHandlers() {
+        this.modalElements.modal.addEventListener('click', event => {
+            if (event.target === this.modalElements.modal) {
+                this.close();
+            }
+        });
 
-        this.clearSpellChoices();
-        this.renderSpellButtons(spells);
-        this.openModal();
+        this.modalElements.closeButton.addEventListener('click', () => this.close());
+    }
+
+    show(spells) {
+        try {
+            this.validateSpells(spells);
+            this.renderSpells(spells);
+            this.open();
+        } catch (error) {
+            this.handleSpellError(error);
+        }
     }
 
     validateSpells(spells) {
-        return spells && 
-               typeof spells === 'object' && 
-               Object.keys(spells).length > 0 &&
-               this.spellChoices;
-    }
+        if (!spells || typeof spells !== 'object') {
+            throw new Error('Invalid spells data format');
+        }
 
-    clearSpellChoices() {
-        this.spellChoices.innerHTML = '';
-    }
-
-    renderSpellButtons(spells) {
-        Object.entries(spells).forEach(([name, data]) => {
-            const btn = this.createSpellButton(name, data);
-            this.spellChoices.appendChild(btn);
+        Object.entries(spells).forEach(([key, spell]) => {
+            if (!spell.name || !spell.requirements) {
+                throw new Error(`Spell ${key} missing required properties`);
+            }
         });
     }
 
-    createSpellButton(name, data) {
-        const btn = document.createElement('div');
-        btn.className = this.getSpellButtonClass(data);
-        btn.textContent = data.name || name;
-        
-        if (this.isSpellAvailable(data)) {
-            btn.addEventListener('click', () => this.handleSpellClick(name));
+    renderSpells(spells) {
+        this.modalElements.choices.replaceChildren(
+            ...Object.entries(spells).map(([spellId, spellData]) => 
+                this.createSpellButton(spellId, spellData)
+            )
+        );
+    }
+
+    createSpellButton(spellId, spellData) {
+        const button = document.createElement('button');
+        button.className = 'spell-choice';
+        button.textContent = spellData.name;
+        button.disabled = !this.isSpellAvailable(spellData.requirements);
+
+        if (!button.disabled) {
+            button.addEventListener('click', () => 
+                this.handleSpellSelection(spellId)
+            );
         }
-        
-        return btn;
+
+        return button;
     }
 
-    getSpellButtonClass(data) {
-        const baseClass = 'spell-choice';
-        return this.isSpellAvailable(data) ? 
-            baseClass : `${baseClass} disabled`;
+    isSpellAvailable(requirements) {
+        return this.game.systems.choice.checkRequirements(requirements);
     }
 
-    isSpellAvailable(data) {
-        return this.game.systems.choice.checkRequirements(data);
+    async handleSpellSelection(spellId) {
+        try {
+            const success = await this.game.systems.magic.castSpell(spellId);
+            if (success) {
+                this.close();
+            }
+        } catch (error) {
+            showError(`Spell execution error: ${error.message}`);
+        }
     }
 
-    handleSpellClick(spellName) {
-        this.game.systems.magic.castSpell(spellName);
-        this.closeModal();
+    open() {
+        this.modalElements.modal.classList.remove('hidden');
+        document.body.classList.add('modal-open');
     }
 
-    openModal() {
-        if (this.modal) this.modal.classList.remove('hidden');
+    close() {
+        this.modalElements.modal.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+        this.clearSpells();
     }
 
-    closeModal() {
-        if (this.modal) this.modal.classList.add('hidden');
+    clearSpells() {
+        this.modalElements.choices.innerHTML = '';
+    }
+
+    handleSpellError(error) {
+        console.error('Spell system error:', error);
+        this.close();
+        this.game.loadChapter('chapter1').catch(console.error);
     }
 }
