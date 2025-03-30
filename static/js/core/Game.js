@@ -51,9 +51,12 @@ export class Game {
     async loadChapter(chapterId) {
 		try {
 			const path = this.getChapterPath(chapterId);
-			console.log('Loading chapter from:', path); // Логирование пути
+            const response = await fetch(path);
+
+            if (response.status === 404) {
+            return this.loadChapter('error_chapter');
+            }
 			
-			const response = await fetch(`${path}?t=${Date.now()}`);
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${await response.text()}`);
 			}
