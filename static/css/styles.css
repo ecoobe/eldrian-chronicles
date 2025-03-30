@@ -234,6 +234,9 @@ body {
 }
 
 .choice-btn {
+	pointer-events: auto !important; /* Принудительно включаем взаимодействие */
+    opacity: 1 !important; /* Принудительно делаем видимыми */
+    transform: none !important;
     background: rgba(40,40,40,0.9);
     border: 1px solid var(--accent-copper);
     color: var(--text-primary);
