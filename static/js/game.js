@@ -329,8 +329,28 @@ class Game {
 		});
 	}
 
+	showAutoContinueButton() {
+		console.log("Нет доступных выборов - показываем кнопку продолжения");
+		const choicesBox = document.getElementById('choices');
+		choicesBox.innerHTML = '';
+		
+		const autoBtn = document.createElement('button');
+		autoBtn.className = 'choice-btn visible';
+		autoBtn.textContent = 'Продолжить...';
+		autoBtn.addEventListener('click', () => {
+			this.loadChapter(this.states.currentChapter);
+		});
+		
+		choicesBox.appendChild(autoBtn);
+	}
+
     showChoicesWithDelay(choices) {
 		const visibleChoices = choices.filter(choice => {
+			if (visibleChoices.length === 0) {
+				console.warn("Нет доступных вариантов выбора!");
+				this.showAutoContinueButton(); // Теперь метод существует
+				return;
+			}
 			try {
 				return this.checkRequirements(choice.requires || {});
 			} catch (e) {
