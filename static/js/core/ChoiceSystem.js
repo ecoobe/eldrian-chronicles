@@ -1,9 +1,15 @@
-import { showError, updateStatsDisplay } from '../utils/helpers.js';
+import { 
+    showError, 
+    updateStatsDisplay, 
+    showDialogue, 
+    updateCharacterSprite 
+} from '../utils/helpers.js';
 
 export class ChoiceSystem {
     constructor(game) {
         this.game = game;
         this.activeChoices = new Set();
+        this.mathClamp = (num, min, max) => Math.min(Math.max(num, min), max);
     }
 
     showChoices(choices, container) {
@@ -70,6 +76,11 @@ export class ChoiceSystem {
         button.className = 'choice-btn';
         button.textContent = choice.text;
         button.dataset.choiceId = choice.id || crypto.randomUUID();
+        
+        if (choice.hidden) {
+            button.classList.add('hidden-choice');
+        }
+        
         return button;
     }
 
@@ -88,10 +99,102 @@ export class ChoiceSystem {
 
     async processChoice(choice) {
         try {
-            this.applyChoiceEffects(choice.effects);
+            this.applyChoiceEffects(choice.effects || {});
+            this.handleCharacterReaction(choice);
             await this.handleChoiceOutcome(choice);
         } catch (error) {
-            showError(`Choice processing failed: ${error.message}`);
+            showError(`Ошибка обработки выбора: ${error.message}`);
+        }
+    }
+
+    handleCharacterReaction(choice) {
+        try {
+            const chapterData = this.game.currentChapterData;
+            if (!chapterData) return;
+
+            // Обработка основных персонажей
+            if (choice.characters?.length && chapterData.characters?.main) {
+                choice.characters.forEach(charId => {
+                    const character = chapterData.characters.main.find(c => c.id === charId);
+                    if (character) this.processCharacterInteraction(character);
+                });
+            }
+
+            // Динамические взаимодействия
+            const dynamicConfig = chapterData.dynamic_elements?.character_interactions;
+            if (dynamicConfig && choice.arc) {
+                Object.entries(dynamicConfig).forEach(([charId, config]) => {
+                    if (config.on_select?.trigger_arc === choice.arc) {
+                        this.triggerDynamicInteraction(charId, config.on_select);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Character reaction error:', error);
+        }
+    }
+
+    processCharacterInteraction(character) {
+        try {
+            if (character.mood && character.sprite) {
+                updateCharacterSprite(character.id, `${character.sprite}_${character.mood}`);
+            }
+
+            if (character.dialogue) {
+                showDialogue({
+                    speaker: character.id,
+                    text: character.dialogue,
+                    position: character.position || 'center'
+                });
+            }
+
+            if (character.position) {
+                this.animateCharacterSelection(character.id);
+            }
+        } catch (error) {
+            console.error('Character interaction failed:', error);
+        }
+    }
+
+    animateCharacterSelection(characterId) {
+        try {
+            const element = document.querySelector(`[data-character="${characterId}"]`);
+            if (element) {
+                element.classList.add('choice-active');
+                setTimeout(() => element.classList.remove('choice-active'), 500);
+            }
+        } catch (error) {
+            console.error('Animation error:', error);
+        }
+    }
+
+    triggerDynamicInteraction(charId, interaction) {
+        try {
+            if (!interaction) return;
+
+            // Обновление спрайта
+            if (interaction.sprite_change) {
+                updateCharacterSprite(charId, interaction.sprite_change);
+            }
+
+            // Диалог
+            if (interaction.dialogue) {
+                showDialogue({
+                    speaker: charId,
+                    text: interaction.dialogue,
+                    mood: interaction.mood || 'neutral'
+                });
+            }
+
+            // Эффекты
+            if (interaction.effects) {
+                Object.entries(interaction.effects).forEach(([key, value]) => {
+                    this.updateGameState(key, value);
+                });
+                updateStatsDisplay(this.game.states);
+            }
+        } catch (error) {
+            console.error('Dynamic interaction error:', error);
         }
     }
 
@@ -104,47 +207,58 @@ export class ChoiceSystem {
 
     updateGameState(key, value) {
         const state = this.game.states;
-        const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
         
         switch(key) {
             case 'health':
-                state.health = clamp(state.health + value, 0, 100);
+                state.health = this.mathClamp(state.health + value, 0, 100);
                 break;
+                
             case 'sanity':
             case 'fate':
-                state[key] = clamp(state[key] + value, 0, 10);
+                state[key] = this.mathClamp(state[key] + value, 0, 10);
                 break;
+                
             case 'inventory':
                 this.handleInventoryOperation(value);
                 break;
+                
             default:
                 if (state.hasOwnProperty(key)) {
-                    state[key] = Math.max(state[key] + value, 0);
+                    const newValue = state[key] + value;
+                    state[key] = typeof state[key] === 'number' 
+                        ? Math.max(newValue, 0) 
+                        : newValue;
                 }
         }
     }
 
     handleInventoryOperation(operation) {
-        const { action, items } = operation;
-        const inventory = this.game.states.inventory;
-        
-        if (!Array.isArray(items)) {
-            throw new Error('Inventory items must be an array');
-        }
+        try {
+            const { action, items } = operation || {};
+            if (!action || !items) {
+                throw new Error('Invalid inventory operation');
+            }
 
-        switch(action) {
-            case 'add':
-                items.forEach(item => {
-                    if (!inventory.includes(item)) inventory.push(item);
-                });
-                break;
-            case 'remove':
-                this.game.states.inventory = inventory.filter(
-                    item => !items.includes(item)
-                );
-                break;
-            default:
-                throw new Error(`Invalid inventory action: ${action}`);
+            const inventory = this.game.states.inventory;
+            
+            switch(action) {
+                case 'add':
+                    items.forEach(item => {
+                        if (!inventory.includes(item)) inventory.push(item);
+                    });
+                    break;
+                    
+                case 'remove':
+                    this.game.states.inventory = inventory.filter(
+                        item => !items.includes(item)
+                    );
+                    break;
+                    
+                default:
+                    throw new Error(`Unknown inventory action: ${action}`);
+            }
+        } catch (error) {
+            showError(`Inventory error: ${error.message}`);
         }
     }
 
@@ -154,7 +268,7 @@ export class ChoiceSystem {
         } else if (choice.next) {
             await this.game.loadChapter(choice.next);
         } else {
-            throw new Error('Choice has no valid outcome');
+            throw new Error('Invalid choice outcome');
         }
     }
 
@@ -168,7 +282,7 @@ export class ChoiceSystem {
     showFallbackChoice(container) {
         const button = document.createElement('button');
         button.className = 'choice-btn visible';
-        button.textContent = 'Continue...';
+        button.textContent = 'Продолжить...';
         button.addEventListener('click', () => 
             this.game.loadChapter(this.getDefaultNextChapter())
         );
@@ -180,12 +294,12 @@ export class ChoiceSystem {
     }
 
     handleChoiceError(error, container) {
-        console.error('Choice system error:', error);
+        console.error('Ошибка системы выбора:', error);
         container.innerHTML = `<div class="error">${error.message}</div>`;
         setTimeout(() => {
             container.innerHTML = '';
-            this.game.loadChapter('chapter1');
-        }, 2000);
+            this.game.loadChapter('chapter1').catch(console.error);
+        }, 3000);
     }
 
     checkRequirements(requires) {
@@ -198,39 +312,72 @@ export class ChoiceSystem {
         }
 
         return Object.entries(requires).every(([key, value]) => {
-            const stateValue = this.game.states[key];
-            
-            if (key.endsWith('_status')) {
-                return stateValue === value;
-            }
-            
-            if (typeof value === 'string' && value.includes('+')) {
-                return stateValue >= parseInt(value);
-            }
-
-            if (key === 'revealed') {
-                return this.game.states.revealedChapters.includes(value);
-            }
-            
-            if (key === 'not_revealed') {
-                return !this.game.states.revealedChapters.includes(value);
-            }
-            
-            if (typeof value === 'object') {
-                const operator = Object.keys(value)[0];
-                const compareValue = value[operator];
-                return this.compareValues(stateValue, operator, compareValue);
-            }
-            
-            if (key === 'inventory') {
-                return this.checkInventoryCondition(value);
-            }
-            
-            if (key === 'not_inventory') {
-                return !this.checkInventoryCondition(value);
-            }
-            
-            return stateValue >= value;
+            return this.checkSingleRequirement(key, value);
         });
+    }
+
+    checkSingleRequirement(key, value) {
+        const state = this.game.states;
+        
+        if (key === 'inventory') {
+            return this.checkInventoryCondition(value);
+        }
+        
+        if (key === 'not_inventory') {
+            return !this.checkInventoryCondition(value);
+        }
+        
+        if (key === 'revealed') {
+            return state.revealedChapters.includes(value);
+        }
+        
+        if (key === 'not_revealed') {
+            return !state.revealedChapters.includes(value);
+        }
+        
+        if (typeof value === 'object') {
+            return this.checkComplexCondition(key, value);
+        }
+        
+        return state[key] >= value;
+    }
+
+    checkComplexCondition(key, condition) {
+        const stateValue = this.game.states[key];
+        const operator = Object.keys(condition)[0];
+        const requiredValue = condition[operator];
+        
+        return this.compareValues(stateValue, operator, requiredValue);
+    }
+
+    parseCondition(condition) {
+        const match = condition.match(/(\w+)([<>=!]+)(\d+)/);
+        if (!match) return false;
+        
+        const [_, key, operator, value] = match;
+        return this.compareValues(
+            this.game.states[key] || 0,
+            operator,
+            parseInt(value)
+        );
+    }
+
+    compareValues(a, operator, b) {
+        switch(operator) {
+            case '>=': return a >= b;
+            case '<=': return a <= b;
+            case '>': return a > b;
+            case '<': return a < b;
+            case '==': return a === b;
+            case '!=': return a !== b;
+            default: return false;
+        }
+    }
+
+    checkInventoryCondition(items) {
+        const inventory = this.game.states.inventory;
+        return [].concat(items).every(item => 
+            inventory.includes(item)
+        );
     }
 }

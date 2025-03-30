@@ -11,13 +11,6 @@
                    font-src 'self' https://fonts.gstatic.com;
                    connect-src 'self'">
     <title>Хроники Элдриана</title>
-    
-    <!-- Предзагрузка основных ресурсов -->
-    <link rel="preload" href="/backgrounds/main_menu.webp" as="image" fetchpriority="high">
-    
-    <!-- Стили -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
@@ -29,8 +22,14 @@
         <button id="endings-btn" class="main-btn">Галерея концовок</button>
     </div>
 
-    <div id="game-container" class="hidden" data-game-container>
-        <!-- Статистика -->
+    <div id="character-container">
+		<img v-for="char in activeCharacters" 
+			 :src="`/sprites/${char.sprite}`"
+			 :class="['character', char.position, char.mood]"
+			 :key="char.id">
+	</div>
+
+    <div id="game-container" class="hidden">
         <div class="stats-container" data-stats-container>
             <!-- Основные характеристики -->
             <div class="stats-box">
@@ -91,23 +90,20 @@
             </div>
         </div>
 
-        <!-- Игровой контент -->
-        <div id="text-display" class="text-box" data-text-display></div>
-        <div id="choices" class="choices-box" data-choices-container></div>
-        <div id="effects-layer" class="effects-layer" data-effects-layer></div>
+        <div id="text-display" class="text-box"></div>
+        <div id="choices" class="choices-box"></div>
+        <div id="effects-layer" class="effects-layer"></div>
     </div>
 
-    <!-- Модальное окно заклинаний (обновленная версия) -->
+    <div id="dialogue-box" class="hidden"></div>
+
     <div id="spell-modal" class="hidden">
         <div class="modal-dialog">
-            <button id="close-spell-modal" class="close-button" aria-label="Закрыть">
-                &times;
-            </button>
+            <button id="close-spell-modal" class="close-button">&times;</button>
             <div id="spell-choices" class="spell-grid"></div>
         </div>
     </div>
 
-    <!-- Исправленный путь к скрипту -->
     <script type="module" src="/js/app.js"></script>
 </body>
 </html>

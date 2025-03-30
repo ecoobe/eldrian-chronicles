@@ -1,196 +1,81 @@
 {
     "id": "chapter1",
     "background": "village_doomsday.webp",
-    "text": "Адское пламя пожирает Ветролом. Воздух наполнен криками и звоном мечей. Каждый выбор определяет вашу судьбу:\n\n[Звук ломающихся балок]\n[Запах горящей плоти]\n[Отблески клейм на доспехах]",
+    "text": "Адское пламя пожирает Ветролом. Воздух наполнен криками и звоном мечей. Перед вами три пути:",
     "ambience": "fire_screams.ogg",
-    "spells": {
-        "flame_call": {
-            "element": "blood",
-            "skill": "magic",
-            "threshold": 8,
-            "effects": [
-                {
-                    "type": "faction_reaction",
-                    "faction": "inquisition",
-                    "action": "detect_blood_magic"
-                },
-                {
-                    "type": "stat_change",
-                    "target": "church_hostility",
-                    "value": 3
-                }
-            ]
-        },
-        "spirit_whisper": {
-            "element": "nature",
-            "skill": "insight",
-            "threshold": 5,
-            "effects": [
-                {
-                    "type": "faction_reaction",
-                    "faction": "forest_spirits",
-                    "action": "contact_spirits"
-                }
-            ]
-        }
-    },
-    "faction_ai": {
-        "inquisition": {
-            "memory": ["player_actions", "magic_use"],
-            "strategy": {
-                "if": "church_hostility > 15",
-                "then": ["call_reinforcements", "burn_surroundings"],
-                "else": ["secure_area", "hunt_mages"]
+    "characters": {
+        "main": [
+            {
+                "id": "lira",
+                "sprite": "lira_combat.webp",
+                "position": "left",
+                "mood": "determined",
+                "dialogue": "Бежим к конюшне! Мы должны спасти лошадей!"
             },
-            "mood": ["aggressive", "neutral"]
-        },
-        "forest_spirits": {
-            "mood": ["vengeful", "neutral"],
-            "gifts": {
-                "vengeful": "poisoned_wind",
-                "neutral": "guidance"
+            {
+                "id": "elina",
+                "sprite": "elina_magic.webp",
+                "position": "right",
+                "mood": "concerned",
+                "dialogue": "Это не обычный пожар... Здесь чувствуется темная магия!"
             }
-        }
-    },
-    "ecosystem": {
-        "predators": {
-            "church_hounds": 3,
-            "fire_drakes": 1
-        },
-        "prey": {
-            "villagers": 12,
-            "livestock": 8
-        },
-        "food_chain_effects": {
-            "hunt_predators": "prey_survival++",
-            "ignore_chaos": "predators_multiply"
-        }
+        ]
     },
     "choices": [
         {
-            "text": "▸ Броситься к горящей конюшне [Сила 4+]",
-            "next": "chapter1_horse_rescue",
-            "requires": {"strength": 4},
-            "effects": {
-                "health": -35,
-                "inventory_add": ["war_horse"],
-                "moral": 20,
-                "church_hostility": 2,
-                "ecosystem_effect": "hunt_predators"
+            "text": "▸ [Спасательная операция] Броситься к горящей конюшне",
+            "arc": "rescue",
+            "characters": ["lira"],
+            "requirements": {
+                "strength": 4
             },
-            "hidden": false
-        },
-        {
-            "text": "▸ Исследовать алтарь в подполье [Магия 3/Реликвия]",
-            "next": "chapter1_occult_altar",
-            "requires": {"any": ["magic>=3", "inventory:old_relic"]},
             "effects": {
-                "sanity": -2,
-                "fate": 1,
-                "inventory_add": ["cursed_icon"],
-                "faction_effect": {
-                    "faction": "inquisition",
-                    "action": "detect_occult"
-                }
-            },
-            "secret": true
-        },
-        {
-            "text": "▸ Переговоры с капитаном инквизиции [Харизма 5+]",
-            "next": "chapter1_negotiation",
-            "requires": {"persuasion": 5},
-            "effects": {
-                "church_hostility": -1,
-                "inventory_add": ["safe_pass"],
-                "moral": -10,
-                "faction_effect": {
-                    "faction": "inquisition",
-                    "action": "record_negotiation"
-                }
-            },
-            "timer": 15
-        },
-        {
-            "text": "▸ Ритуальное самоожертвование [Тень Прошлого]",
-            "next": "chapter1_dark_pact",
-            "requires": {"curse_level": 2},
-            "effects": {
-                "health": 999,
-                "sanity": -5,
-                "fate": -3,
-                "inventory_add": ["void_heart"],
-                "spell_effect": "void_awakening"
-            },
-            "hidden": true
-        },
-        {
-            "text": "▸ Поиск архива деревенского мудреца [Знание 4+]",
-            "next": "chapter1_archive",
-            "requires": {"intelligence": 4},
-            "effects": {
-                "inventory_add": ["elders_scroll"],
-                "insight": 3,
-                "faction_effect": {
-                    "faction": "forest_spirits",
-                    "action": "acknowledge_wisdom"
-                }
-            },
-            "puzzle": "fire_pattern"
-        },
-        {
-            "text": "▸ Преследование теневого арбалетчика [Скрытность 6+]",
-            "next": "chapter1_arbalest_hunt",
-            "requires": {"stealth": 6},
-            "effects": {
-                "inventory_add": ["church_blueprints"],
-                "moral": -5,
-                "faction_effect": {
-                    "faction": "inquisition",
-                    "action": "alert_security"
-                }
-            },
-            "qte": "arrow_dodge"
-        },
-        {
-            "text": "▸ Призыв лесных духов [Древний Амулет]",
-            "next": "chapter1_spirit_alliance",
-            "requires": {"inventory": "ancient_amulet"},
-            "effects": {
-                "magic": 4,
-                "forest_allies": 1,
-                "church_hostility": 3,
-                "faction_effect": {
-                    "faction": "forest_spirits",
-                    "action": "form_alliance"
-                },
-                "ecosystem_effect": "predators_retreat"
-            },
-            "animation": "ritual"
-        },
-        {
-            "text": "▸ Использовать заклинание огня [Магия 5+]",
-            "next": "chapter1_flame_call",
-            "requires": {"magic": 5},
-            "effects": {
-                "spell_cast": "flame_call",
-                "health": -10
-            },
-            "hidden": false
-        }
-    ],
-    "variants": [
-        {
-            "trigger": {"fate": 3},
-            "text": "Тьма шепчет вам на ухо, предлагая силу...\n\n[Голоса в голове]\n[Дрожание земли]\n[Кровь в глазах]",
-            "background": "village_doomsday_dark.webp",
-            "effects": {
-                "sanity": -1
+                "health": -25,
+                "lira_trust": 15,
+                "inventory_add": ["war_horse"]
             }
         },
         {
-            "trigger": {"forest_allies": 1},
-            "text": "Духи леса кружат вокруг вас, защищая от пламени...\n\n[Шелест листьев]\n[Зеленые вспышки]\n[Запах сосны]",
-            "background": "village_doomsday_spirits.webp"
+            "text": "▸ [Мистическое расследование] Исследовать источник пламени",
+            "arc": "mystery",
+            "characters": ["elina"],
+            "requirements": {
+                "insight": 3
+            },
+            "effects": {
+                "sanity": -3,
+                "elina_trust": 10,
+                "revealed_chapters_add": ["occult_ritual"]
+            }
+        },
+        {
+            "text": "▸ [Дипломатия] Переговоры с капитаном инквизиции",
+            "arc": "diplomacy",
+            "characters": ["grey_stranger"],
+            "requirements": {
+                "persuasion": 5
+            },
+            "effects": {
+                "church_hostility": -2,
+                "inventory_add": ["safe_pass"]
+            }
         }
-    ]
+    ],
+    "dynamic_elements": {
+        "random_events": [
+            {
+                "trigger": {"fate": 3},
+                "text": "Тьма шепчет вам...",
+                "sprite": "void_whisperer.webp"
+            }
+        ],
+        "character_interactions": {
+            "lira": {
+                "on_select": {
+                    "dialogue": "Я с тобой! Давай поторопимся!",
+                    "sprite_change": "lira_urgent.webp"
+                }
+            }
+        }
+    }
 }
