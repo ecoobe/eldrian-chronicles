@@ -105,6 +105,7 @@ class SpellSystem {
 class Game {
     constructor() {
         this.states = {
+			currentChapter: 'chapter1',
             magic: 0,
             lira_trust: 0,
             kyle_trust: 0,
@@ -112,7 +113,6 @@ class Game {
             moral: 50,
             gold: 10,
             health: 100,
-            currentChapter: 'chapter1',
             inventory: [],
             endings_unlocked: [],
             willpower: 5,
@@ -157,6 +157,12 @@ class Game {
     }
 
     async loadChapter(chapterId) {
+		if (!chapterId || typeof chapterId !== 'string') {
+			const errorMsg = `Некорректный ID главы: ${chapterId}`;
+			console.error(errorMsg);
+			return Promise.reject(new Error(errorMsg));
+		}
+
 		if (!chapterId) {
 			this.showError("Не указан ID главы");
 			return Promise.reject("Invalid chapter ID");
@@ -199,6 +205,19 @@ class Game {
 	}
 
     async renderChapter(data) {
+		// Добавить в начало метода
+		if (!data || typeof data !== 'object') {
+			const errorMsg = "Некорректные данные главы";
+			console.error(errorMsg);
+			throw new Error(errorMsg);
+		}
+		
+		// Добавить проверку choices
+		if (!Array.isArray(data.choices)) {
+			console.warn("Отсутствует массив choices, создаем пустой");
+			data.choices = [];
+		}
+
 		console.log("[RENDER] Начало рендеринга");
 		const textDisplay = document.getElementById('text-display');
 		const choicesBox = document.getElementById('choices');
@@ -330,8 +349,18 @@ class Game {
 	}
 
 	showAutoContinueButton() {
-		console.log("Нет доступных выборов - показываем кнопку продолжения");
+		if (!this.states?.currentChapter) {
+			console.error("Невозможно продолжить: текущая глава не определена");
+			return;
+		}
+		
 		const choicesBox = document.getElementById('choices');
+		if (!choicesBox) {
+			console.error("Элемент choices не найден");
+			return;
+		}
+
+		console.log("Нет доступных выборов - показываем кнопку продолжения");
 		choicesBox.innerHTML = '';
 		
 		const autoBtn = document.createElement('button');
