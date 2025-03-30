@@ -1,44 +1,138 @@
 {
     "id": "chapter2",
-    "variants": [
+    "background": "eldritch_forest.webp",
+    "dynamic": {
+        "weather": ["blood_rain", "sentient_fog", "whispering_wind"],
+        "time_cycle": {
+            "dawn": "silver_light.ogg",
+            "night": "voiceless_screams.ogg"
+        }
+    },
+    "text": "Лес дышит. Каждый шаг меняет реальность. Выберите свой путь:",
+    "soundscape": {
+        "layers": [
+            {"src": "forest_heartbeat.ogg", "volume": 0.3},
+            {"src": "shadow_choir.ogg", "volume": 0.7, "trigger": "curse_level>=2"}
+        ]
+    },
+    "choices": [
         {
-            "trigger": {"inventory": ["rune_of_silence"]},
-            "background": "ancient_forest.webp",
-            "text": "Руна пульсирует в такт вашему сердцу. Деревья шепчут:\n\"Беги...\", \"Отомсти...\", \"Сожги...\"",
-            "choices": [
-                {
-                    "text": "Прислушаться к голосам",
-                    "next": "chapter2_voices",
-                    "effects": {"magic": 3, "moral": -10}
-                },
-                {
-                    "text": "Закопать руну",
-                    "next": "chapter2_purge",
-                    "effects": {"moral": 15}
+            "text": "◈ Пройти Кровавый Лабиринт [Выживание 7+]",
+            "next": "chapter2_blood_maze",
+            "requires": {"survival": 7},
+            "effects": {
+                "inventory": ["map_of_veins"],
+                "health": "50%",
+                "insight": 5
+            },
+            "minigame": {
+                "type": "procedural_maze",
+                "rules": {
+                    "death_conditions": ["step_on_symbol", "double_back"],
+                    "rewards": ["shortcut_to_chapter3"]
                 }
-            ]
+            }
         },
         {
-            "trigger": {"default": true},
-            "background": "forest_crossroads.webp",
-            "text": "На перекрёстке стоят три камня:\n1. Грубый менгир с рунами\n2. Чёрный обелиск\n3. Разбитая статуя",
-            "choices": [
-                {
-                    "text": "Исследовать менгир",
-                    "next": "chapter2_lira",
-                    "requires": {"perception": 3}
-                },
-                {
-                    "text": "Прикоснуться к обелиску",
-                    "next": "chapter2_corruption",
-                    "effects": {"health": -30, "magic": 5}
-                },
-                {
-                    "text": "Собрать осколки статуи",
-                    "next": "chapter2_secret",
-                    "hidden": true
-                }
-            ]
+            "text": "◈ Заключить договор с Тенекликом [Тень 4+ / Сан.≤3]",
+            "next": "chapter2_shadow_pact",
+            "requires": {"any": ["shadow_magic>=4", "sanity<=3"]},
+            "effects": {
+                "curse_level": 3,
+                "unlocks": ["void_step", "nightmare_visions"]
+            },
+            "animation": "umbral_contract"
+        },
+        {
+            "text": "◈ Освободить Пленённый Рассвет [Священный Меч]",
+            "next": "chapter2_dawn_liberation",
+            "requires": {"inventory": "holy_avenger"},
+            "effects": {
+                "church_hostility": 5,
+                "moral": 40,
+                "world_state": "+1 light"
+            },
+            "epic_event": {
+                "type": "boss_battle",
+                "phases": 3,
+                "mechanics": ["light_reflection", "purge_corruption"]
+            }
+        },
+        {
+            "text": "◈ Построить Убежище Из Костей [Инженерия 5+/Мораль≤10]",
+            "next": "chapter2_bone_fortress",
+            "requires": {"all": ["engineering>=5", "moral<=10"]},
+            "effects": {
+                "sanity": -7,
+                "defense": 999,
+                "inventory": ["ossuary_key"]
+            },
+            "building_system": {
+                "resources": ["bone_fragments", "cursed_resin"],
+                "blueprints": 3
+            }
+        },
+        {
+            "text": "◈ Стать Живым Жертвенником [Культист Пустоты]",
+            "next": "chapter2_living_altar",
+            "requires": {
+                "all": [
+                    "curse_level>=5", 
+                    "inventory:void_shard",
+                    "church_hostility>=8"
+                ]
+            },
+            "effects": {
+                "humanity": 0,
+                "unlocks": ["reality_tear"],
+                "game_over": "eldritch_ascension"
+            },
+            "hidden": true
+        },
+        {
+            "text": "◈ Организовать Восстание Духов [Друид+Шаман]",
+            "next": "chapter2_spirit_uprising",
+            "requires": {
+                "any": [
+                    "druid_level>=5", 
+                    "shaman_totems>=3"
+                ]
+            },
+            "effects": {
+                "forest_allies": 5,
+                "church_hostility": 10,
+                "world_state": "forest_awakened"
+            },
+            "dynamic_army": {
+                "units": ["ent_guardians", "river_spirits"],
+                "strategy": "siege_warfare"
+            }
+        },
+        {
+            "text": "◈ Войти в Зеркальный Слой [Артефакт Разлома]",
+            "next": "chapter2_mirror_realm",
+            "requires": {"inventory": "reality_shard"},
+            "effects": {
+                "sanity": "roll(1d20)",
+                "inventory": ["parallel_self"],
+                "fate": "+=3"
+            },
+            "reality_shift": {
+                "rules": [
+                    "invert_moral_values",
+                    "swap_stats(str,int)"
+                ]
+            }
         }
-    ]
+    ],
+    "global_consequences": {
+        "after_24h": {
+            "church_crusade": "+=1",
+            "forest_corruption": "+=2"
+        },
+        "hidden_flags": [
+            "veil_thickness",
+            "moon_phase"
+        ]
+    }
 }

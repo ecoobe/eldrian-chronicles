@@ -1,0 +1,35 @@
+{
+    "id": "chapter2_blood_maze",
+    "type": "procedural",
+    "generation_rules": {
+        "size": ["player_insight * 10"],
+        "traps": ["church_hostility / 2"],
+        "rewards": ["moral>=30 ? 'holy_relic' : 'cursed_artifact'"]
+    },
+    "layers": [
+        {
+            "type": "combat",
+            "enemies": ["blood_cultists", "haunted_armor"],
+            "boss": {
+                "condition": "steps_taken >= 50",
+                "entity": "living_blood_fountain"
+            }
+        },
+        {
+            "type": "puzzle",
+            "mechanic": "rune_sequence",
+            "solutions": {
+                "holy": ["fire", "light", "life"],
+                "dark": ["void", "blood", "scream"]
+            }
+        },
+        {
+            "type": "moral_choice",
+            "scenario": "sacrifice_companion",
+            "consequences": {
+                "accept": ["moral=-20", "power+=100"],
+                "refuse": ["health=1", "unlock_true_ending_path"]
+            }
+        }
+    ]
+}

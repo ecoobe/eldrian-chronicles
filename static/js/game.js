@@ -1,6 +1,58 @@
 document.getElementById('start-game-btn').addEventListener('click', initGame);
 let currentAnimationFrame = null;
 
+class MagicSystem {
+    constructor(game) {
+        this.game = game;
+        this.leyLines = {
+            "blood": { strength: 0.7, alignment: "chaos" },
+            "void": { strength: 1.2, alignment: "eldritch" },
+            "nature": { strength: 0.9, alignment: "order" }
+        };
+        this.activeSpells = [];
+    }
+
+    castSpell(spellName) {
+        const spell = this.game.currentChapterData.spells?.[spellName];
+        if (!spell) return false;
+
+        const leyLine = this.leyLines[spell.element];
+        const power = leyLine.strength * this.game.states[spell.skill];
+        
+        if (power > spell.threshold) {
+            this.applySpellEffects(spell.effects);
+            this.game.updateStatsDisplay();
+            return true;
+        }
+        return false;
+    }
+
+    applySpellEffects(effects) {
+        effects.forEach(effect => {
+            if (effect.type === 'faction_reaction') {
+                this.triggerFactionAI(effect.faction, effect.action);
+            } else if (effect.type === 'stat_change') {
+                this.game.states[effect.target] += effect.value;
+            }
+        });
+    }
+
+    triggerFactionAI(faction, action) {
+        const ai = this.game.currentChapterData.faction_ai?.[faction];
+        if (!ai) return;
+
+        if (ai.strategy) {
+            const condition = ai.strategy.if.replace('player_moral', this.game.states.moral);
+            if (this.game.parseCondition(condition)) {
+                ai.strategy.then.forEach(response => {
+                    console.log(`Фракция ${faction} реагирует: ${response}`);
+                    this.game.handleAIResponse(faction, response);
+                });
+            }
+        }
+    }
+}
+
 class Game {
     constructor() {
         this.states = {
@@ -27,6 +79,13 @@ class Game {
         this.isLoading = false;
         this.currentChapterData = null;
         this.choiceTimers = new Map();
+        this.magicSystem = new MagicSystem(this);
+        this.factionStates = {};
+        this.ecosystem = {
+            predators: {},
+            prey: {},
+            lastUpdate: Date.now()
+        };
         this.preloadBackgrounds();
     }
 
@@ -66,6 +125,7 @@ class Game {
             
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
             const data = await response.json();
+            this.currentChapterData = data;
 
             this.states.currentChapter = chapterId;
             await this.renderChapter(data);
@@ -86,7 +146,6 @@ class Game {
         choicesBox.innerHTML = '';
         this.clearChoiceTimers();
 
-        // Обработка вариантов главы
         let content = data;
         if (data.variants) {
             content = data.variants.find(v => this.checkVariantConditions(v)) || data;
@@ -95,6 +154,51 @@ class Game {
         await this.startBgTransition(content);
         await this.typewriterEffect(content.text);
         this.showChoicesWithDelay(content.choices || []);
+        this.updateStatsDisplay();
+        this.updateFactionAI();
+        this.updateEcosystem();
+    }
+
+    updateFactionAI() {
+        Object.entries(this.currentChapterData?.faction_ai || {}).forEach(([faction, ai]) => {
+            if (!this.factionStates[faction]) {
+                this.factionStates[faction] = {
+                    mood: ai.mood?.[0] || 'neutral',
+                    memory: []
+                };
+            }
+            
+            if (this.states.moral > 60 && ai.mood?.includes('benevolent')) {
+                this.factionStates[faction].mood = 'benevolent';
+            }
+        });
+    }
+
+    updateEcosystem() {
+        const now = Date.now();
+        const hoursPassed = (now - this.ecosystem.lastUpdate) / (1000 * 60 * 60);
+        
+        if (hoursPassed < 1) return;
+        
+        if (this.currentChapterData?.ecosystem?.predators) {
+            Object.entries(this.currentChapterData.ecosystem.predators).forEach(([species, count]) => {
+                this.ecosystem.predators[species] = count * (1 - 0.05 * hoursPassed);
+            });
+        }
+        
+        this.ecosystem.lastUpdate = now;
+    }
+
+    handleAIResponse(faction, response) {
+        switch(response) {
+            case 'send_zealots':
+                this.states.church_hostility += 10;
+                break;
+            case 'burn_forest':
+                this.states.elina_trust -= 5;
+                break;
+            // Другие реакции...
+        }
         this.updateStatsDisplay();
     }
 
@@ -311,7 +415,7 @@ class Game {
         
         if (requires.any) {
             return requires.any.some(condition => 
-                this.parseComplexCondition(condition)
+                this.parseCondition(condition)
             );
         }
 
@@ -360,7 +464,7 @@ class Game {
         });
     }
 
-    parseComplexCondition(condition) {
+    parseCondition(condition) {
         const match = condition.match(/(\w+)([<>=]+)(\d+)/);
         if (!match) return false;
         
@@ -464,6 +568,18 @@ function initGame() {
 }
 
 function showEndingsGallery() {
-    // Реализация галереи концовок
-    console.log("Показать галерею концовок");
+    const endingsHTML = game.states.endings_unlocked.map(ending => 
+        `<div class="ending-card">
+            <h3>${ending.replace('ending_', '').replace(/_/g, ' ')}</h3>
+            <button onclick="game.loadChapter('${ending}')">Посмотреть</button>
+        </div>`
+    ).join('');
+    
+    document.getElementById('text-display').innerHTML = `
+        <div class="endings-gallery">
+            <h2>Галерея концовок</h2>
+            <div class="endings-grid">${endingsHTML}</div>
+            <button onclick="game.loadChapter(game.states.currentChapter)">Вернуться</button>
+        </div>
+    `;
 }
