@@ -499,30 +499,34 @@ class Game {
     }
 
     updateStatsDisplay() {
-        const elements = {
-            healthBar: document.getElementById('health-bar'),
-            healthValue: document.getElementById('health-value'),
-            magicBar: document.getElementById('magic-bar'),
-            magicValue: document.getElementById('magic-value'),
-            inventoryCount: document.getElementById('inventory-count'),
-            liraTrust: document.getElementById('lira-trust'),
-            moralValue: document.getElementById('moral-value'),
-            goldValue: document.getElementById('gold-value'),
-            sanityValue: document.getElementById('sanity-value'),
-            fateValue: document.getElementById('fate-value')
-        };
-
-        elements.healthBar.style.width = `${this.states.health}%`;
-        elements.healthValue.textContent = this.states.health;
-        elements.magicBar.style.width = `${this.states.magic}%`;
-        elements.magicValue.textContent = this.states.magic;
-        elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
-        elements.liraTrust.textContent = this.states.lira_trust;
-        elements.moralValue.textContent = this.states.moral;
-        elements.goldValue.textContent = this.states.gold;
-        elements.sanityValue.textContent = this.states.sanity;
-        elements.fateValue.textContent = this.states.fate;
-    }
+		const elements = {
+			healthBar: document.getElementById('health-bar'),
+			healthValue: document.getElementById('health-value'),
+			magicBar: document.getElementById('magic-bar'),
+			magicValue: document.getElementById('magic-value'),
+			inventoryCount: document.getElementById('inventory-count'),
+			liraTrust: document.getElementById('lira-trust'),
+			moralValue: document.getElementById('moral-value'),
+			// Добавляем проверку на существование элементов
+			goldValue: document.getElementById('gold-value') || { textContent: '' },
+			sanityValue: document.getElementById('sanity-value') || { textContent: '' },
+			fateValue: document.getElementById('fate-value') || { textContent: '' }
+		};
+	
+		// Основные обязательные элементы
+		if (elements.healthBar) elements.healthBar.style.width = `${this.states.health}%`;
+		if (elements.healthValue) elements.healthValue.textContent = this.states.health;
+		if (elements.magicBar) elements.magicBar.style.width = `${this.states.magic}%`;
+		if (elements.magicValue) elements.magicValue.textContent = this.states.magic;
+		if (elements.inventoryCount) elements.inventoryCount.textContent = `${this.states.inventory.length}/10`;
+		if (elements.liraTrust) elements.liraTrust.textContent = this.states.lira_trust;
+		if (elements.moralValue) elements.moralValue.textContent = this.states.moral;
+		
+		// Дополнительные элементы (если существуют)
+		if (elements.goldValue) elements.goldValue.textContent = this.states.gold;
+		if (elements.sanityValue) elements.sanityValue.textContent = this.states.sanity;
+		if (elements.fateValue) elements.fateValue.textContent = this.states.fate;
+	}
 
     showError(message) {
         const errorHTML = `

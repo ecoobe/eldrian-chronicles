@@ -5,41 +5,109 @@
     <title>Хроники Элдриана</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap">
     <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Дополнительные стили для новых элементов */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-item.highlight {
+            background: rgba(255, 215, 0, 0.2);
+            border-left: 3px solid gold;
+        }
+        .faction-status {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-top: 3px;
+        }
+    </style>
 </head>
 <body>
     <div id="main-menu" class="main-menu">
         <h1>Хроники Элдриана</h1>
         <button id="start-game-btn" class="main-btn">Начать Путь</button>
         <button id="load-btn" class="main-btn" disabled>Продолжить</button>
+        <button id="endings-btn" class="main-btn" onclick="showEndingsGallery()">Галерея концовок</button>
     </div>
 
     <div id="game-container" class="hidden">
-        <div class="stats-box">
-            <div class="stat-item">
-                <span>❤️ Здоровье: <span id="health-value">100</span>%</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="health-bar" style="width: 100%"></div>
+        <div class="stats-container">
+            <!-- Основные характеристики -->
+            <div class="stats-box">
+                <div class="stat-item highlight">
+                    <span>❤️ Здоровье: <span id="health-value">100</span>%</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="health-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span>✨ Магия: <span id="magic-value">0</span></span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="magic-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span>🧠 Рассудок: <span id="sanity-value">10</span>/10</span>
+                </div>
+                <div class="stat-item">
+                    <span>☯️ Судьба: <span id="fate-value">0</span>/10</span>
                 </div>
             </div>
-            <div class="stat-item">
-                <span>✨ Магия: <span id="magic-value">0</span></span>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="magic-bar" style="width: 0%"></div>
+
+            <!-- Вторичные характеристики -->
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <span>💰 Золото: <span id="gold-value">10</span></span>
+                </div>
+                <div class="stat-item">
+                    <span>⚔️ Боевой навык: <span id="combat-value">0</span></span>
+                </div>
+                <div class="stat-item">
+                    <span>🔍 Проницательность: <span id="insight-value">0</span></span>
+                </div>
+                <div class="stat-item">
+                    <span>🎒 Инвентарь: <span id="inventory-count">0/10</span></span>
                 </div>
             </div>
-            <div class="stat-item">
-                <span>🤝 Доверие Лиры: <span id="lira-trust">0</span></span>
-            </div>
-            <div class="stat-item">
-                <span>🎒 Инвентарь: <span id="inventory-count">0/10</span></span>
-            </div>
-            <div class="stat-item">
-                <span>⚖️ Мораль: <span id="moral-value">50</span></span>
+
+            <!-- Отношения -->
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <span>🤝 Доверие Лиры: <span id="lira-trust">0</span></span>
+                    <div class="faction-status" id="lira-status">Нейтрально</div>
+                </div>
+                <div class="stat-item">
+                    <span>🛡️ Доверие Калеба: <span id="kyle-trust">0</span></span>
+                </div>
+                <div class="stat-item">
+                    <span>🌿 Доверие Элины: <span id="elina-trust">0</span></span>
+                </div>
+                <div class="stat-item">
+                    <span>⚖️ Мораль: <span id="moral-value">50</span></span>
+                </div>
+                <div class="stat-item">
+                    <span>🔥 Вражда Церкви: <span id="church-hostility">0</span></span>
+                </div>
             </div>
         </div>
 
+        <!-- Контейнер для отображения текста и выбора -->
         <div id="text-display" class="text-box"></div>
         <div id="choices" class="choices-box"></div>
+
+        <!-- Скрытый контейнер для спецэффектов -->
+        <div id="effects-layer" class="effects-layer"></div>
+    </div>
+
+    <!-- Модальное окно для заклинаний -->
+    <div id="spell-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Выберите заклинание</h3>
+            <div id="spell-choices"></div>
+            <button class="close-btn" onclick="document.getElementById('spell-modal').classList.add('hidden')">Закрыть</button>
+        </div>
     </div>
 
     <script src="/js/game.js"></script>
