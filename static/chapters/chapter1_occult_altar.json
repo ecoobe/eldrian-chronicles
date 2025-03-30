@@ -1,49 +1,108 @@
 {
     "id": "chapter1_occult_altar",
-    "background": "forgotten_catacombs.webp",
-    "text": "Каменный алтарь исписан запретными рунами. В воздухе висит густой миазм. Ваши действия:\n\n1. Принести жертву\n2. Расшифровать надписи\n3. Уничтожить алтарь\n4. Оставить метку для будущего",
-    "environment": {
-        "lighting": "dynamic_torch",
-        "sound": "dripping_water.ogg"
+    "background": "blood_altar.webp",
+    "text": "Алтарь пульсирует тёмной энергией. Руны на камнях светятся багровым светом, а воздух наполнен металлическим запахом крови.",
+    "soundscape": {
+        "layers": [
+            {"src": "heartbeat.ogg", "volume": 0.8},
+            {"src": "whispers.ogg", "volume": 0.5}
+        ]
+    },
+    "spells": {
+        "blood_revelation": {
+            "element": "blood",
+            "skill": "magic",
+            "threshold": 12,
+            "effects": [
+                {
+                    "type": "stat_change",
+                    "target": "insight",
+                    "value": 5
+                },
+                {
+                    "type": "faction_reaction",
+                    "faction": "void_cult",
+                    "action": "initiate_contact"
+                }
+            ]
+        }
+    },
+    "faction_ai": {
+        "void_cult": {
+            "memory": ["blood_rituals"],
+            "strategy": {
+                "if": "fate > 3",
+                "then": ["send_emissary"],
+                "else": ["observe"]
+            }
+        }
     },
     "choices": [
         {
-            "text": "▸ Жертва собственной кровью [Здоровье 50+]",
+            "text": "◉ Совершить кровавый ритуал [Магия 5+]",
             "next": "chapter1_blood_pact",
-            "requires": {"health": 50},
+            "requires": {"magic": 5},
             "effects": {
-                "health": -50,
-                "inventory": ["eldritch_tome"],
-                "curse_level": 2
+                "fate": 2,
+                "sanity": -3,
+                "inventory_add": ["blood_sigil"],
+                "faction_effect": {
+                    "faction": "inquisition",
+                    "action": "detect_heresy"
+                }
+            },
+            "animation": "blood_ritual"
+        },
+        {
+            "text": "◉ Расшифровать руны [Интеллект 6+]",
+            "next": "chapter1_runes_deciphered",
+            "requires": {"intelligence": 6},
+            "effects": {
+                "insight": 4,
+                "inventory_add": ["eldritch_lexicon"],
+                "ecosystem_effect": "disturb_spirits"
             }
         },
         {
-            "text": "▸ Расшифровать с помощью Тени [Магия 5+]",
-            "next": "chapter1_decipher",
-            "requires": {"magic": 5},
+            "text": "◉ Разрушить алтарь [Сила 7+]",
+            "next": "chapter1_altar_destroyed",
+            "requires": {"strength": 7},
             "effects": {
-                "insight": 5,
-                "sanity": -3
+                "moral": 10,
+                "church_hostility": -5,
+                "faction_effect": {
+                    "faction": "forest_spirits",
+                    "action": "acknowledge_purge"
+                }
             },
-            "minigame": "rune_matching"
+            "qte": "smash_sequence"
         },
         {
-            "text": "▸ Взорвать святилище [Инженерия 3+]",
-            "next": "chapter1_altar_destruction",
-            "requires": {"engineering": 3},
+            "text": "◉ Призвать Тенеклика [Тень 4+]",
+            "next": "chapter1_shadow_summon",
+            "requires": {"shadow_magic": 4},
             "effects": {
-                "church_hostility": -2,
-                "moral": 15
+                "curse_level": 2,
+                "inventory_add": ["void_shard"],
+                "spell_effect": "void_gateway"
             },
-            "qte": "explosion_sequence"
-        },
+            "hidden": true
+        }
+    ],
+    "ecosystem": {
+        "predators": ["blood_ghouls"],
+        "spirits": ["restless_dead"],
+        "disturbance_effects": {
+            "ritual_completed": "predators_multiply",
+            "altar_destroyed": "spirits_calm"
+        }
+    },
+    "variants": [
         {
-            "text": "▸ Оставить метку воров [Гильдия Воров]",
-            "next": "chapter1_thieves_guild",
-            "requires": {"guild_member": true},
+            "trigger": {"inventory": "holy_symbol"},
+            "text": "Ваш священный символ нагревается, предупреждая о нечистой силе...",
             "effects": {
-                "gold": 200,
-                "thieves_trust": 2
+                "sanity": 1
             }
         }
     ]

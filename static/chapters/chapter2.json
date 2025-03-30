@@ -15,15 +15,78 @@
             {"src": "shadow_choir.ogg", "volume": 0.7, "trigger": "curse_level>=2"}
         ]
     },
+    "spells": {
+        "roots_call": {
+            "element": "nature",
+            "skill": "druid_level",
+            "threshold": 4,
+            "effects": [
+                {
+                    "type": "faction_reaction",
+                    "faction": "forest_spirits",
+                    "action": "awaken_allies"
+                }
+            ]
+        },
+        "void_gaze": {
+            "element": "void",
+            "skill": "shadow_magic",
+            "threshold": 7,
+            "effects": [
+                {
+                    "type": "stat_change",
+                    "target": "insight",
+                    "value": 10
+                },
+                {
+                    "type": "stat_change",
+                    "target": "sanity",
+                    "value": -5
+                }
+            ]
+        }
+    },
+    "faction_ai": {
+        "forest_spirits": {
+            "memory": ["player_actions"],
+            "mood": ["vengeful", "neutral", "benevolent"],
+            "gifts": {
+                "vengeful": "poisoned_fruits",
+                "benevolent": "healing_spring"
+            }
+        },
+        "church_expedition": {
+            "strategy": {
+                "if": "church_hostility > 15",
+                "then": ["burn_forest"],
+                "else": ["establish_outpost"]
+            }
+        }
+    },
+    "ecosystem": {
+        "predators": {
+            "shadow_stalkers": 3,
+            "corrupted_bears": 2
+        },
+        "prey": {
+            "spirit_deer": 4,
+            "moon_hares": 8
+        },
+        "balance_effects": {
+            "hunt_predators": "prey_population+=2",
+            "disturb_spirits": "predators_anger+=3"
+        }
+    },
     "choices": [
         {
             "text": "◈ Пройти Кровавый Лабиринт [Выживание 7+]",
             "next": "chapter2_blood_maze",
             "requires": {"survival": 7},
             "effects": {
-                "inventory": ["map_of_veins"],
+                "inventory_add": ["map_of_veins"],
                 "health": "50%",
-                "insight": 5
+                "insight": 5,
+                "ecosystem_effect": "disturb_spirits"
             },
             "minigame": {
                 "type": "procedural_maze",
@@ -39,7 +102,11 @@
             "requires": {"any": ["shadow_magic>=4", "sanity<=3"]},
             "effects": {
                 "curse_level": 3,
-                "unlocks": ["void_step", "nightmare_visions"]
+                "unlocks": ["void_step", "nightmare_visions"],
+                "faction_effect": {
+                    "faction": "void_cult",
+                    "action": "initiate_pact"
+                }
             },
             "animation": "umbral_contract"
         },
@@ -50,7 +117,11 @@
             "effects": {
                 "church_hostility": 5,
                 "moral": 40,
-                "world_state": "+1 light"
+                "world_state": "+1 light",
+                "faction_effect": {
+                    "faction": "forest_spirits",
+                    "action": "bless_hero"
+                }
             },
             "epic_event": {
                 "type": "boss_battle",
@@ -65,7 +136,8 @@
             "effects": {
                 "sanity": -7,
                 "defense": 999,
-                "inventory": ["ossuary_key"]
+                "inventory_add": ["ossuary_key"],
+                "ecosystem_effect": "anger_spirits"
             },
             "building_system": {
                 "resources": ["bone_fragments", "cursed_resin"],
@@ -85,7 +157,11 @@
             "effects": {
                 "humanity": 0,
                 "unlocks": ["reality_tear"],
-                "game_over": "eldritch_ascension"
+                "game_over": "eldritch_ascension",
+                "faction_effect": {
+                    "faction": "all",
+                    "action": "witness_ascension"
+                }
             },
             "hidden": true
         },
@@ -101,7 +177,8 @@
             "effects": {
                 "forest_allies": 5,
                 "church_hostility": 10,
-                "world_state": "forest_awakened"
+                "world_state": "forest_awakened",
+                "spell_effect": "roots_call"
             },
             "dynamic_army": {
                 "units": ["ent_guardians", "river_spirits"],
@@ -114,8 +191,12 @@
             "requires": {"inventory": "reality_shard"},
             "effects": {
                 "sanity": "roll(1d20)",
-                "inventory": ["parallel_self"],
-                "fate": "+=3"
+                "inventory_add": ["parallel_self"],
+                "fate": "+=3",
+                "faction_effect": {
+                    "faction": "void_cult",
+                    "action": "acknowledge_breaker"
+                }
             },
             "reality_shift": {
                 "rules": [
@@ -123,16 +204,38 @@
                     "swap_stats(str,int)"
                 ]
             }
+        },
+        {
+            "text": "◈ Использовать заклинание Лесного Зова [Друид 3+]",
+            "next": "chapter2_druid_call",
+            "requires": {"druid_level": 3},
+            "effects": {
+                "spell_cast": "roots_call",
+                "health": -5
+            }
         }
     ],
     "global_consequences": {
         "after_24h": {
             "church_crusade": "+=1",
-            "forest_corruption": "+=2"
+            "forest_corruption": "+=2",
+            "ecosystem_effect": "predators_multiply"
         },
         "hidden_flags": [
             "veil_thickness",
             "moon_phase"
         ]
-    }
+    },
+    "variants": [
+        {
+            "trigger": {"forest_allies": 3},
+            "text": "Деревья склоняются перед вами, признавая вашу связь с лесом...",
+            "background": "forest_allied.webp"
+        },
+        {
+            "trigger": {"curse_level": 4},
+            "text": "Тени шепчут ваше имя, а воздух наполнен статикой нереальности...",
+            "soundscape": {"add": "void_whispers.ogg"}
+        }
+    ]
 }

@@ -3,6 +3,69 @@
     "background": "village_doomsday.webp",
     "text": "Адское пламя пожирает Ветролом. Воздух наполнен криками и звоном мечей. Каждый выбор определяет вашу судьбу:\n\n[Звук ломающихся балок]\n[Запах горящей плоти]\n[Отблески клейм на доспехах]",
     "ambience": "fire_screams.ogg",
+    "spells": {
+        "flame_call": {
+            "element": "blood",
+            "skill": "magic",
+            "threshold": 8,
+            "effects": [
+                {
+                    "type": "faction_reaction",
+                    "faction": "inquisition",
+                    "action": "detect_blood_magic"
+                },
+                {
+                    "type": "stat_change",
+                    "target": "church_hostility",
+                    "value": 3
+                }
+            ]
+        },
+        "spirit_whisper": {
+            "element": "nature",
+            "skill": "insight",
+            "threshold": 5,
+            "effects": [
+                {
+                    "type": "faction_reaction",
+                    "faction": "forest_spirits",
+                    "action": "contact_spirits"
+                }
+            ]
+        }
+    },
+    "faction_ai": {
+        "inquisition": {
+            "memory": ["player_actions", "magic_use"],
+            "strategy": {
+                "if": "church_hostility > 15",
+                "then": ["call_reinforcements", "burn_surroundings"],
+                "else": ["secure_area", "hunt_mages"]
+            },
+            "mood": ["aggressive", "neutral"]
+        },
+        "forest_spirits": {
+            "mood": ["vengeful", "neutral"],
+            "gifts": {
+                "vengeful": "poisoned_wind",
+                "neutral": "guidance"
+            }
+        }
+    },
+    "ecosystem": {
+        "predators": {
+            "church_hounds": 3,
+            "fire_drakes": 1
+        },
+        "prey": {
+            "villagers": 12,
+            "livestock": 8
+        },
+        "food_chain_effects": {
+            "hunt_predators": "prey_survival++",
+            "ignore_chaos": "predators_multiply"
+        }
+    },
     "choices": [
         {
             "text": "▸ Броситься к горящей конюшне [Сила 4+]",
@@ -10,9 +73,10 @@
             "requires": {"strength": 4},
             "effects": {
                 "health": -35,
-                "inventory": ["war_horse"],
+                "inventory_add": ["war_horse"],
                 "moral": 20,
-                "church_hostility": 2
+                "church_hostility": 2,
+                "ecosystem_effect": "hunt_predators"
             },
             "hidden": false
         },
@@ -23,7 +87,11 @@
             "effects": {
                 "sanity": -2,
                 "fate": 1,
-                "inventory": ["cursed_icon"]
+                "inventory_add": ["cursed_icon"],
+                "faction_effect": {
+                    "faction": "inquisition",
+                    "action": "detect_occult"
+                }
             },
             "secret": true
         },
@@ -33,8 +101,12 @@
             "requires": {"persuasion": 5},
             "effects": {
                 "church_hostility": -1,
-                "inventory": ["safe_pass"],
-                "moral": -10
+                "inventory_add": ["safe_pass"],
+                "moral": -10,
+                "faction_effect": {
+                    "faction": "inquisition",
+                    "action": "record_negotiation"
+                }
             },
             "timer": 15
         },
@@ -46,7 +118,8 @@
                 "health": 999,
                 "sanity": -5,
                 "fate": -3,
-                "inventory": ["void_heart"]
+                "inventory_add": ["void_heart"],
+                "spell_effect": "void_awakening"
             },
             "hidden": true
         },
@@ -55,8 +128,12 @@
             "next": "chapter1_archive",
             "requires": {"intelligence": 4},
             "effects": {
-                "inventory": ["elders_scroll"],
-                "insight": 3
+                "inventory_add": ["elders_scroll"],
+                "insight": 3,
+                "faction_effect": {
+                    "faction": "forest_spirits",
+                    "action": "acknowledge_wisdom"
+                }
             },
             "puzzle": "fire_pattern"
         },
@@ -65,8 +142,12 @@
             "next": "chapter1_arbalest_hunt",
             "requires": {"stealth": 6},
             "effects": {
-                "inventory": ["church_blueprints"],
-                "moral": -5
+                "inventory_add": ["church_blueprints"],
+                "moral": -5,
+                "faction_effect": {
+                    "faction": "inquisition",
+                    "action": "alert_security"
+                }
             },
             "qte": "arrow_dodge"
         },
@@ -77,9 +158,39 @@
             "effects": {
                 "magic": 4,
                 "forest_allies": 1,
-                "church_hostility": 3
+                "church_hostility": 3,
+                "faction_effect": {
+                    "faction": "forest_spirits",
+                    "action": "form_alliance"
+                },
+                "ecosystem_effect": "predators_retreat"
             },
             "animation": "ritual"
+        },
+        {
+            "text": "▸ Использовать заклинание огня [Магия 5+]",
+            "next": "chapter1_flame_call",
+            "requires": {"magic": 5},
+            "effects": {
+                "spell_cast": "flame_call",
+                "health": -10
+            },
+            "hidden": false
+        }
+    ],
+    "variants": [
+        {
+            "trigger": {"fate": 3},
+            "text": "Тьма шепчет вам на ухо, предлагая силу...\n\n[Голоса в голове]\n[Дрожание земли]\n[Кровь в глазах]",
+            "background": "village_doomsday_dark.webp",
+            "effects": {
+                "sanity": -1
+            }
+        },
+        {
+            "trigger": {"forest_allies": 1},
+            "text": "Духи леса кружат вокруг вас, защищая от пламени...\n\n[Шелест листьев]\n[Зеленые вспышки]\n[Запах сосны]",
+            "background": "village_doomsday_spirits.webp"
         }
     ]
 }
