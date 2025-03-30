@@ -330,60 +330,49 @@ class Game {
 	}
 
     showChoicesWithDelay(choices) {
-        const visibleChoices = choices.filter(choice => {
-            if (choice.hidden) {
-                return this.checkRequirements(choice.requires || {});
-            }
-            return true;
-        });
-        
-        const choicesBox = document.getElementById('choices');
-        choicesBox.innerHTML = '';
-
-        visibleChoices.forEach((choice, i) => {
-            setTimeout(() => {
-                const btn = this.createChoiceButton(choice);
-                this.fadeInElement(btn);
-                choicesBox.appendChild(btn);
-                
-                if (choice.timeout) {
-                    this.startChoiceTimer(choice, choice.timeout);
-                }
-            }, i * 400);
-        });
-    }
+		const visibleChoices = choices.filter(choice => 
+			this.checkRequirements(choice.requires || {})
+		);
+		
+		const choicesBox = document.getElementById('choices');
+		choicesBox.innerHTML = '';
+	
+		visibleChoices.forEach((choice, i) => {
+			const btn = this.createChoiceButton(choice);
+			choicesBox.appendChild(btn);
+			
+			// Анимация через requestAnimationFrame
+			requestAnimationFrame(() => {
+				setTimeout(() => {
+					btn.classList.add('visible');
+				}, i * 200);
+			});
+	
+			if (choice.timeout) {
+				this.startChoiceTimer(choice, choice.timeout);
+			}
+		});
+	}
 
     createChoiceButton(choice) {
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn';
-        btn.textContent = choice.text;
-        btn.disabled = !this.checkRequirements(choice.requires || {});
-        btn.style.opacity = '0';
-        btn.onclick = () => this.handleChoice(choice);
-        
-        if (choice.danger) btn.dataset.danger = "true";
-        if (choice.hidden) btn.dataset.hidden = "true";
-        if (choice.timeout) btn.dataset.timer = choice.timeout;
-        
-        return btn;
-    }
-
-    fadeInElement(element) {
-        let opacity = 0;
-        const DURATION = 800;
-        const startTime = performance.now();
-        
-        const animate = (timestamp) => {
-            const progress = timestamp - startTime;
-            opacity = Math.min(progress / DURATION, 1);
-            element.style.opacity = opacity;
-            
-            if (opacity < 1) {
-                requestAnimationFrame(animate);
-            }
-        };
-        requestAnimationFrame(animate);
-    }
+		const btn = document.createElement('button');
+		btn.className = 'choice-btn';
+		btn.textContent = choice.text;
+		btn.dataset.choiceId = choice.id || Math.random().toString(36).substr(2, 9);
+		
+		// Правильное назначение обработчика
+		btn.addEventListener('click', () => this.handleChoice(choice));
+		
+		// Перенос логики проверки условий
+		btn.disabled = !this.checkRequirements(choice.requires || {});
+	
+		// Добавляем data-атрибуты
+		if (choice.danger) btn.dataset.danger = "true";
+		if (choice.hidden) btn.dataset.hidden = "true";
+		if (choice.timeout) btn.dataset.timer = choice.timeout;
+		
+		return btn;
+	}
 
     startChoiceTimer(choice, duration) {
         const timer = setTimeout(() => {
