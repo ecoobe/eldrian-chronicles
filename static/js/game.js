@@ -190,6 +190,38 @@ class Game {
         }
     }
 
+	async loadBackground(background) {
+        return new Promise((resolve, reject) => {
+            console.log(`[DEBUG] Загрузка фона: /backgrounds/${background}`);
+            
+            if (!background) {
+                reject(new Error("Не указано фоновое изображение"));
+                return;
+            }
+
+            const gameContainer = document.getElementById('game-container');
+            if (!gameContainer) {
+                reject(new Error("Игровой контейнер не найден"));
+                return;
+            }
+
+            const bgImage = new Image();
+            bgImage.onload = () => {
+                console.log(`[DEBUG] Фон загружен: ${bgImage.src}`);
+                gameContainer.style.backgroundImage = `url('${bgImage.src}')`;
+                resolve();
+            };
+            
+            bgImage.onerror = () => {
+                console.error(`[DEBUG] Ошибка загрузки фона: ${background}`);
+                gameContainer.style.backgroundImage = 'url("/backgrounds/main_menu.webp")';
+                reject(new Error(`Не удалось загрузить фон: ${background}`));
+            };
+
+            bgImage.src = `/backgrounds/${background}`;
+        });
+    }
+
     async renderChapter(data) {
         if (!data || typeof data !== 'object') {
             throw new Error("Некорректные данные главы");
@@ -203,7 +235,11 @@ class Game {
         cancelAnimationFrame(currentAnimationFrame);
         
         // Загрузка фона
-        await this.loadBackground(data.background).catch(console.error);
+        try {
+            await this.loadBackground(data.background);
+        } catch (error) {
+            console.error("Ошибка фона:", error.message);
+        }
 
         // Отображение текста
         textDisplay.innerHTML = '<div class="text-content"></div>';
