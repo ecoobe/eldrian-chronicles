@@ -49,23 +49,28 @@ export class Game {
     }
 
     async loadChapter(chapterId) {
-        try {
-            const path = this.getChapterPath(chapterId);
-            const response = await fetch(`${path}?t=${Date.now()}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
-            }
-            
-            this.currentChapterData = await response.json();
-            this.validateChapterData();
-            
-            this.states.currentChapter = chapterId;
-            await this.renderChapter();
-        } catch (error) {
-            this.handleLoadingError(error);
-        }
-    }
+		try {
+			const path = this.getChapterPath(chapterId);
+			console.log('Loading chapter from:', path); // Логирование пути
+			
+			const response = await fetch(`${path}?t=${Date.now()}`);
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+			}
+	
+			const rawData = await response.text();
+			console.log('Raw response:', rawData); // Логирование сырых данных
+			
+			this.currentChapterData = JSON.parse(rawData);
+			this.validateChapterData();
+			
+			this.states.currentChapter = chapterId;
+			await this.renderChapter();
+		} catch (error) {
+			console.error('Full error details:', error); // Детальное логирование
+			this.handleLoadingError(error);
+		}
+	}
 
     getChapterPath(chapterId) {
         return chapterId.startsWith('ending_') 
