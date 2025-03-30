@@ -418,3 +418,16 @@ body {
     50% { filter: hue-rotate(180deg) blur(10px); transform: skew(45deg); }
     100% { filter: hue-rotate(360deg); transform: skew(-0.1deg); }
 }
+
+.modal-open {
+    overflow: hidden;
+}
+
+.spell-choice {
+    transition: opacity 0.3s ease;
+}
+
+.spell-choice[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+}
