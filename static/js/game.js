@@ -157,64 +157,89 @@ class Game {
     }
 
     async loadChapter(chapterId) {
-        if (!chapterId) {
-            this.showError("Не указан ID главы");
-            return;
-        }
-
-        if (this.isLoading) return;
-        this.isLoading = true;
-
-        try {
-            let path;
-            if (chapterId.startsWith('ending_')) {
-                path = `/endings/${chapterId}.json`;
-            } else {
-                path = `/chapters/${chapterId}.json`;
-            }
-
-            const response = await fetch(`${path}?t=${Date.now()}`);
-            
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            const data = await response.json();
-            this.currentChapterData = data;
-
-            this.states.currentChapter = chapterId;
-            await this.renderChapter(data);
-
-        } catch (error) {
-            console.error("Ошибка загрузки:", error);
-            this.showError(`Ошибка в ${chapterId}: ${error.message}`);
-        } finally {
-            this.isLoading = false;
-        }
-    }
+		if (!chapterId) {
+			this.showError("Не указан ID главы");
+			return Promise.reject("Invalid chapter ID");
+		}
+	
+		if (this.isLoading) {
+			console.warn("Попытка повторной загрузки во время процесса загрузки");
+			return Promise.reject("Already loading");
+		}
+	
+		this.isLoading = true;
+		console.log(`[DEBUG] Начало загрузки главы ${chapterId}`);
+	
+		try {
+			let path = chapterId.startsWith('ending_') 
+				? `/endings/${chapterId}.json` 
+				: `/chapters/${chapterId}.json`;
+	
+			console.log(`[DEBUG] Запрашиваю: ${path}`);
+			const response = await fetch(`${path}?t=${Date.now()}`);
+			
+			if (!response.ok) {
+				throw new Error(`HTTP error: ${response.status}`);
+			}
+	
+			const data = await response.json();
+			console.log("[DEBUG] Данные главы получены:", data);
+	
+			this.states.currentChapter = chapterId;
+			await this.renderChapter(data);
+			
+		} catch (error) {
+			console.error("Ошибка загрузки:", error);
+			this.showError(`Ошибка в ${chapterId}: ${error.message}`);
+			throw error; // Пробрасываем ошибку дальше
+		} finally {
+			this.isLoading = false;
+			console.log("[DEBUG] Загрузка главы завершена");
+		}
+	}
 
     async renderChapter(data) {
-        const textDisplay = document.getElementById('text-display');
-        const choicesBox = document.getElementById('choices');
-        
-        textDisplay.innerHTML = '';
-        choicesBox.innerHTML = '';
-        this.clearChoiceTimers();
-		spellSystem.closeModal();
-
-        let content = data;
-        if (data.variants) {
-            content = data.variants.find(v => this.checkVariantConditions(v)) || data;
-        }
-
-        await this.startBgTransition(content);
-        await this.typewriterEffect(content.text);
-        this.showChoicesWithDelay(content.choices || []);
-        this.updateStatsDisplay();
-        this.updateFactionAI();
-        this.updateEcosystem();
-
-        if (content.spells && Object.keys(content.spells).length > 0) {
-			spellSystem.showSpells(content.spells);
+		if (!data) {
+			console.error("Нет данных для рендеринга");
+			return;
 		}
-    }
+	
+		console.log("[DEBUG] Начало рендеринга главы");
+		const textDisplay = document.getElementById('text-display');
+		const choicesBox = document.getElementById('choices');
+		
+		if (!textDisplay || !choicesBox) {
+			console.error("Элементы для отображения не найдены");
+			return;
+		}
+	
+		// Очистка
+		textDisplay.innerHTML = '';
+		choicesBox.innerHTML = '';
+		this.clearChoiceTimers();
+	
+		// Выбор варианта контента
+		let content = data;
+		if (data.variants) {
+			content = data.variants.find(v => this.checkVariantConditions(v)) || data;
+		}
+	
+		// Загрузка фона
+		try {
+			await this.startBgTransition(content);
+		} catch (error) {
+			console.error("Ошибка фона:", error);
+		}
+	
+		// Показ текста
+		await this.typewriterEffect(content.text);
+		
+		// Показ выбора
+		this.showChoicesWithDelay(content.choices || []);
+		this.updateStatsDisplay();
+		
+		console.log("[DEBUG] Рендеринг главы завершен");
+	}
 
     clearChoiceTimers() {
         this.choiceTimers.forEach(timer => clearTimeout(timer));
@@ -610,22 +635,21 @@ const game = new Game();
 const spellSystem = new SpellSystem(game);
 
 function initGame() {
-    console.log("[DEBUG] Нажата кнопка 'Начать путь'");
+    console.log("[DEBUG] Инициализация игры...");
     
-    const mainMenu = document.getElementById('main-menu');
-    const gameContainer = document.getElementById('game-container');
-    
-    if (!mainMenu || !gameContainer) {
-        console.error("Ошибка: Не найдены необходимые элементы DOM");
-        return;
-    }
+    // Блокируем кнопку на время загрузки
+    const startBtn = document.getElementById('start-game-btn');
+    startBtn.disabled = true;
+    startBtn.textContent = "Загрузка...";
 
-    // Убираем дублирование
-    mainMenu.classList.add('hidden');
-    gameContainer.classList.remove('hidden');
+    // Закрываем все модальные окна
     spellSystem.closeModal();
 
-    // Инициализация состояния игры
+    // Переключаем видимость
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('game-container').classList.remove('hidden');
+
+    // Сброс состояния
     game.states = {
         magic: 0,
         lira_trust: 0,
@@ -647,12 +671,23 @@ function initGame() {
         combat_skill: 0,
         insight: 0
     };
-    
-    console.log("[DEBUG] Загрузка chapter1...");
-    game.loadChapter('chapter1').catch(error => {
-        console.error("Ошибка при загрузке главы:", error);
-        game.showError(`Не удалось загрузить игру: ${error.message}`);
-    });
+
+    // Загрузка главы с защитой от рекурсии
+    console.log("[DEBUG] Начинаем загрузку chapter1");
+    game.loadChapter('chapter1')
+        .then(() => {
+            console.log("[DEBUG] Глава успешно загружена");
+            startBtn.disabled = false;
+        })
+        .catch(error => {
+            console.error("Критическая ошибка:", error);
+            game.showError(`Не удалось запустить игру: ${error.message}`);
+            // Возвращаем в главное меню при ошибке
+            document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('game-container').classList.add('hidden');
+            startBtn.disabled = false;
+            startBtn.textContent = "Начать Путь";
+        });
 }
 
 function showEndingsGallery() {
