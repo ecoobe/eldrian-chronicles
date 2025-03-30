@@ -1,0 +1,15 @@
+{
+    "id": "chapter1_rescue_child",
+    "background": "burning_stable_interior.webp",
+    "text": "Среди дыма вы замечаете запертого ребенка...",
+    "choices": [
+        {
+            "text": "Спасти ребенка [Скорость 5+]",
+            "effects": {"moral": 10}
+        },
+        {
+            "text": "Спасти лошадей [Сила 4+]",
+            "effects": {"gold": 20}
+        }
+    ]
+}

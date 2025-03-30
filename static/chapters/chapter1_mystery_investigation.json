@@ -1,0 +1,11 @@
+{
+    "id": "chapter1_mystery_investigation",
+    "background": "occult_symbols.webp",
+    "text": "Вы находите странные символы на стенах...",
+    "choices": [
+        {
+            "text": "Изучить символы [Знание 5+]",
+            "next": "chapter1_occult_altar"
+        }
+    ]
+}

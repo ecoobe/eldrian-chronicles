@@ -1,32 +1,56 @@
 {
     "id": "chapter1_rescue",
-    "background": "burning_house.webp",
-    "text": "Вы врываетесь в горящий дом и находите девочку. Она без сознания, но крепко сжимает странный медальон с символом солнца...",
+    "background": "burning_stables.webp",
+    "text": "Вы врываетесь в пылающую конюшню. Воздух наполнен дымом, слышен треск горящего дерева. Что будете делать?",
+    "ambience": "fire_crackle.ogg",
+    "default_next": "chapter1_rescue_child",
+    "characters": {
+        "main": [
+            {
+                "id": "lira",
+                "sprite": "lira_urgent.webp",
+                "position": "left",
+                "mood": "panicked",
+                "dialogue": "Быстрее! Они заперты в дальнем стойле!"
+            }
+        ]
+    },
     "choices": [
         {
-            "text": "Взять медальон",
-            "next": "chapter2",
+            "text": "▸ Взломать дверь [Сила 6+]",
+            "next": "chapter1_rescue_horses",
+            "requirements": {"strength": 6},
             "effects": {
-                "inventory": ["suspicious_medallion"],
-                "moral": -5
+                "health": -15,
+                "inventory_add": ["sturdy_axe"]
             }
         },
         {
-            "text": "Оставить артефакт",
-            "next": "chapter2",
+            "text": "▸ Искать обходной путь [Ловкость 4+]",
+            "next": "chapter1_rescue_child",
+            "requirements": {"dexterity": 4},
             "effects": {
-                "lira_trust": 2,
-                "moral": 10
+                "sanity": -2,
+                "revealed_chapters_add": ["secret_passage"]
             }
         },
         {
-            "text": "Исследовать медальон (Магия ≥2)",
-            "next": "chapter1_medallion_inspect",
-            "requires": {"magic": 2},
+            "text": "▸ Использовать заклинание [Магия 3+]",
+            "next": "chapter1_rescue_magic",
+            "requirements": {"magic": 3},
             "effects": {
-                "magic": 1,
-                "health": -10
+                "church_hostility": 1,
+                "inventory_add": ["burnt_scroll"]
             }
         }
-    ]
+    ],
+    "dynamic_elements": {
+        "random_events": [
+            {
+                "trigger": {"inventory": "water_flask"},
+                "text": "Использовать воду из фляги для тушения",
+                "next": "chapter1_rescue_water"
+            }
+        ]
+    }
 }

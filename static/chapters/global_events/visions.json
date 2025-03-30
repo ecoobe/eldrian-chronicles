@@ -1,0 +1,6 @@
+{
+    "id": "vision_prophecy",
+    "trigger": {"fate": 5},
+    "text": "Вас посещает видение...",
+    "effects": {"insight": 2}
+}
