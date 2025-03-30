@@ -330,49 +330,62 @@ class Game {
 	}
 
     showChoicesWithDelay(choices) {
-		const visibleChoices = choices.filter(choice => 
-			this.checkRequirements(choice.requires || {})
-		);
+		const visibleChoices = choices.filter(choice => {
+			try {
+				return this.checkRequirements(choice.requires || {});
+			} catch (e) {
+				console.error("Ошибка проверки условий:", e);
+				return false;
+			}
+		});
+	
+		console.log("Доступные выборы:", visibleChoices); // Добавьте логирование
 		
 		const choicesBox = document.getElementById('choices');
 		choicesBox.innerHTML = '';
+		
+		if (visibleChoices.length === 0) {
+			console.warn("Нет доступных вариантов выбора!");
+			this.showAutoContinueButton();
+			return;
+		}
 	
 		visibleChoices.forEach((choice, i) => {
 			const btn = this.createChoiceButton(choice);
 			choicesBox.appendChild(btn);
 			
-			// Анимация через requestAnimationFrame
-			requestAnimationFrame(() => {
-				setTimeout(() => {
-					btn.classList.add('visible');
-				}, i * 200);
-			});
-	
-			if (choice.timeout) {
-				this.startChoiceTimer(choice, choice.timeout);
-			}
+			// Упрощенная анимация
+			setTimeout(() => {
+				btn.classList.add('visible');
+				console.log("Кнопка добавлена:", btn); // Логирование
+			}, i * 100);
 		});
 	}
 
     createChoiceButton(choice) {
 		const btn = document.createElement('button');
 		btn.className = 'choice-btn';
-		btn.textContent = choice.text;
+		btn.textContent = choice.text || "Без текста";
 		btn.dataset.choiceId = choice.id || Math.random().toString(36).substr(2, 9);
 		
-		// Правильное назначение обработчика
-		btn.addEventListener('click', () => this.handleChoice(choice));
+		// Уберите inline стили
+		btn.style.opacity = '0'; 
+		btn.style.transform = 'translateY(20px)';
 		
-		// Перенос логики проверки условий
-		btn.disabled = !this.checkRequirements(choice.requires || {});
+		btn.addEventListener('click', (e) => {
+			console.log("Клик зарегистрирован:", e.target);
+			this.handleChoice(choice);
+		});
+		
+		try {
+			btn.disabled = !this.checkRequirements(choice.requires || {});
+		} catch (e) {
+			console.error("Ошибка проверки требований:", e);
+			btn.disabled = true;
+		}
 	
-		// Добавляем data-атрибуты
-		if (choice.danger) btn.dataset.danger = "true";
-		if (choice.hidden) btn.dataset.hidden = "true";
-		if (choice.timeout) btn.dataset.timer = choice.timeout;
-		
 		return btn;
-	}
+	}	
 
     startChoiceTimer(choice, duration) {
         const timer = setTimeout(() => {
