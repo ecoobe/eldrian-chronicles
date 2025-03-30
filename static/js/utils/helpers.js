@@ -15,6 +15,10 @@ export async function loadBackground(background) {
     });
 }
 
+export function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
 export function updateStatsDisplay(states) {
     const elements = {
         healthBar: document.getElementById('health-bar'),
