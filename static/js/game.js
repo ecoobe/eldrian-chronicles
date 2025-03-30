@@ -524,30 +524,21 @@ const game = new Game();
 const spellSystem = new SpellSystem(game);
 
 function initGame() {
-    console.log("[DEBUG] Инициализация игры...");
-
-	setTimeout(() => {
-		console.log("Проверка видимости:",
-			document.getElementById('game-container').style.display,
-			document.getElementById('text-display').style.opacity,
-			window.getComputedStyle(document.getElementById('game-container')).getPropertyValue('opacity')
-		);
-	}, 1000);
-    
-    // Блокируем кнопку на время загрузки
     const startBtn = document.getElementById('start-game-btn');
+    if (!startBtn) return;
+
     startBtn.disabled = true;
     startBtn.textContent = "Загрузка...";
 
-    // Закрываем все модальные окна
-    spellSystem.closeModal();
+    const mainMenu = document.getElementById('main-menu');
+    const gameContainer = document.getElementById('game-container');
 
-    // Переключаем видимость
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('game-container').classList.remove('hidden');
+    if (mainMenu) mainMenu.classList.add('hidden');
+    if (gameContainer) gameContainer.classList.remove('hidden');
 
-    // Сброс состояния
-    game.states = {
+    // Сброс состояния игры
+    Object.assign(game.states, {
+        currentChapter: 'chapter1',
         magic: 0,
         lira_trust: 0,
         kyle_trust: 0,
@@ -555,7 +546,6 @@ function initGame() {
         moral: 50,
         gold: 10,
         health: 100,
-        currentChapter: 'chapter1',
         inventory: [],
         endings_unlocked: [],
         willpower: 5,
@@ -567,21 +557,16 @@ function initGame() {
         church_hostility: 0,
         combat_skill: 0,
         insight: 0
-    };
+    });
 
-    // Загрузка главы с защитой от рекурсии
-    console.log("[DEBUG] Начинаем загрузку chapter1");
     game.loadChapter('chapter1')
-        .then(() => {
-            console.log("[DEBUG] Глава успешно загружена");
-            startBtn.disabled = false;
-        })
         .catch(error => {
-            console.error("Критическая ошибка:", error);
-            game.showError(`Не удалось запустить игру: ${error.message}`);
-            // Возвращаем в главное меню при ошибке
-            document.getElementById('main-menu').classList.remove('hidden');
-            document.getElementById('game-container').classList.add('hidden');
+            console.error("Ошибка запуска:", error);
+            if (mainMenu) mainMenu.classList.remove('hidden');
+            if (gameContainer) gameContainer.classList.add('hidden');
+            game.showError(`Ошибка запуска: ${error.message}`);
+        })
+        .finally(() => {
             startBtn.disabled = false;
             startBtn.textContent = "Начать Путь";
         });
@@ -595,11 +580,14 @@ function showEndingsGallery() {
         </div>`
     ).join('');
     
-    document.getElementById('text-display').innerHTML = `
+    const galleryHTML = `
         <div class="endings-gallery">
             <h2>Галерея концовок</h2>
             <div class="endings-grid">${endingsHTML}</div>
             <button onclick="game.loadChapter(game.states.currentChapter)">Вернуться</button>
         </div>
     `;
+    
+    const textDisplay = document.getElementById('text-display');
+    if (textDisplay) textDisplay.innerHTML = galleryHTML;
 }
