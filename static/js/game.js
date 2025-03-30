@@ -524,20 +524,30 @@ const game = new Game();
 const spellSystem = new SpellSystem(game);
 
 function initGame() {
-    const startBtn = document.getElementById('start-game-btn');
-    if (!startBtn) return;
+    console.log("[DEBUG] Инициализация игры...");
 
+	setTimeout(() => {
+		console.log("Проверка видимости:",
+			document.getElementById('game-container').style.display,
+			document.getElementById('text-display').style.opacity,
+			window.getComputedStyle(document.getElementById('game-container')).getPropertyValue('opacity')
+		);
+	}, 1000);
+    
+    // Блокируем кнопку на время загрузки
+    const startBtn = document.getElementById('start-game-btn');
     startBtn.disabled = true;
     startBtn.textContent = "Загрузка...";
 
-    const mainMenu = document.getElementById('main-menu');
-    const gameContainer = document.getElementById('game-container');
+    // Закрываем все модальные окна
+    spellSystem.closeModal();
 
-    if (mainMenu) mainMenu.classList.add('hidden');
-    if (gameContainer) gameContainer.classList.remove('hidden');
+    // Переключаем видимость
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('game-container').classList.remove('hidden');
 
-    // Сброс состояния игры
-    Object.assign(game.states = {
+    // Сброс состояния
+    game.states = {
         magic: 0,
         lira_trust: 0,
         kyle_trust: 0,
@@ -557,7 +567,7 @@ function initGame() {
         church_hostility: 0,
         combat_skill: 0,
         insight: 0
-    });
+    };
 
     // Загрузка главы с защитой от рекурсии
     console.log("[DEBUG] Начинаем загрузку chapter1");
