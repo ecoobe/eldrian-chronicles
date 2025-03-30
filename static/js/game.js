@@ -259,15 +259,18 @@ class Game {
 
     loadBackground(background) {
         return new Promise((resolve, reject) => {
+			console.log(`[DEBUG] Пытаюсь загрузить фон: /backgrounds/${background}`);
             const gameContainer = document.getElementById('game-container');
             const bgImage = new Image();
             
             bgImage.onload = () => {
+				console.log(`[DEBUG] Фон успешно загружен: ${bgImage.src}`);
                 gameContainer.style.backgroundImage = `url('${bgImage.src}')`;
                 resolve();
             };
             
             bgImage.onerror = () => {
+				console.error(`[DEBUG] Ошибка загрузки фона: ${background}`);
                 gameContainer.style.backgroundImage = 'url("/backgrounds/main_menu.webp")';
                 reject(new Error(`Не удалось загрузить фон: ${background}`));
             };
@@ -607,10 +610,22 @@ const game = new Game();
 const spellSystem = new SpellSystem(game);
 
 function initGame() {
-    document.getElementById('main-menu').classList.add('hidden');
-    document.getElementById('game-container').classList.remove('hidden');
-    spellSystem.closeModal(); // Закрываем окно при старте
+    console.log("[DEBUG] Нажата кнопка 'Начать путь'");
     
+    const mainMenu = document.getElementById('main-menu');
+    const gameContainer = document.getElementById('game-container');
+    
+    if (!mainMenu || !gameContainer) {
+        console.error("Ошибка: Не найдены необходимые элементы DOM");
+        return;
+    }
+
+    // Убираем дублирование
+    mainMenu.classList.add('hidden');
+    gameContainer.classList.remove('hidden');
+    spellSystem.closeModal();
+
+    // Инициализация состояния игры
     game.states = {
         magic: 0,
         lira_trust: 0,
@@ -633,7 +648,11 @@ function initGame() {
         insight: 0
     };
     
-    game.loadChapter('chapter1');
+    console.log("[DEBUG] Загрузка chapter1...");
+    game.loadChapter('chapter1').catch(error => {
+        console.error("Ошибка при загрузке главы:", error);
+        game.showError(`Не удалось загрузить игру: ${error.message}`);
+    });
 }
 
 function showEndingsGallery() {
